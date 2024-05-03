@@ -21,6 +21,10 @@ export function validate(action: string) {
           login: z.string().min(1),
           username: z.string().optional(),
           password: z.string().min(5)
+        }),
+        authorization: z.object({
+          login: z.string().min(1),
+          password: z.string().min(5)
         })
       };
 
