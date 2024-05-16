@@ -4,8 +4,8 @@ export interface IUser {
   username: string | null;
   password?: string; // ? - чтобы в процессе мы могли его удалить
   avatar: string | null;
-  about: string | null;
-  gender: string | null;
+  about?: string | null;
+  gender?: string | null;
   verification: boolean;
-  recommendation: boolean;
+  recommendation: boolean; // рекомендации другого пользователя не должны присутствовать
 }

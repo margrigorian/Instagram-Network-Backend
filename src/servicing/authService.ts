@@ -12,7 +12,9 @@ export async function checkUser(login: string, password: string): Promise<IUser 
   // user.password просит проверку из-за типизации
   if (user && user.password) {
     areSamePassword = await bcript.compare(password, user.password); // проверка соответствия пароля
-    delete user.password; // чтобы на front не был отправлен пароль
+    delete user.password; //  чтобы на front не был отправлен пароль
+    delete user.about; // лишнее, не нужно при первичном входе
+    delete user.gender;
   }
 
   if (user && areSamePassword) {
@@ -28,8 +30,9 @@ export async function addNewUser(contact: string, login: string, username: strin
   const newUser = await addUser(contact, login, username, hashpassword);
   // проверка, требуемая типизацией
   if (newUser) {
-    // чтобы на front не был отправлен пароль
-    delete newUser.password;
+    delete newUser.password; // чтобы на front не был отправлен пароль
+    delete newUser.about; // лишнее, не нужно при первичном входе
+    delete newUser.gender;
   }
 
   return newUser;
