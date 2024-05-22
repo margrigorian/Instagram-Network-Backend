@@ -1,5 +1,5 @@
 import bcript from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { secret } from "../lib/config.js";
 import { getUser, addUser } from "../db/slices/users.js";
 import { IUser } from "../db/types/usersSliceTypes.js";
@@ -25,9 +25,9 @@ export async function checkUser(login: string, password: string): Promise<IUser 
   }
 }
 
-export async function addNewUser(contact: string, login: string, username: string | undefined, password: string): Promise<IUser | null> {
+export async function addNewUser(login: string, username: string | undefined, contact: string, password: string): Promise<IUser | null> {
   const hashpassword = await bcript.hash(password, 10);
-  const newUser = await addUser(contact, login, username, hashpassword);
+  const newUser = await addUser(login, username, contact, hashpassword);
   // проверка, требуемая типизацией
   if (newUser) {
     delete newUser.password; // чтобы на front не был отправлен пароль
@@ -39,10 +39,31 @@ export async function addNewUser(contact: string, login: string, username: strin
 }
 
 export function getToken(login: string) {
+  // id более надежен, так как к нему мы получаем доступ непосредственно после входа на страницу
+  // login же виден всем
   const payload = {
     login
   };
 
   const token = jwt.sign(payload, secret, { expiresIn: "12h" });
   return token;
+}
+
+export async function checkToken(token: string): Promise<IUser | null> {
+  try {
+    const decodedToken: string | JwtPayload = jwt.verify(token, secret); // при ошибке пробрасывает throw
+
+    if (typeof decodedToken === "object") {
+      const user = await getUser(decodedToken.login); // проверка наличия юзера с таким id, возращ. объект c пользователем
+
+      if (user) {
+        // пользователь найден
+        return user;
+      }
+    }
+
+    return null;
+  } catch (err) {
+    return null; // в случае ошибки jwt.verify
+  }
 }

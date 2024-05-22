@@ -8,15 +8,16 @@ export async function getAccountInfo(login: string): Promise<IAccount | null> {
 
   // чтобы исключить лишние действия
   if (user) {
+    // удаляем, не стоит отправлять id на frontend
+    delete user.id;
     delete user.password;
 
-    const followers: [(RowDataPacket & { id: number })[], FieldPacket[]] = await db.query(
-      `SELECT id_of_follower AS id FROM subscriptions WHERE login_of_following = "${login}"`
+    const followers: [(RowDataPacket & { login: string })[], FieldPacket[]] = await db.query(
+      `SELECT login_of_follower AS id FROM subscriptions WHERE login_of_following = "${login}"`
     );
 
     const following: [(RowDataPacket & { login: string })[], FieldPacket[]] = await db.query(
-      `SELECT login_of_following AS login FROM subscriptions
-      WHERE id_of_follower = (SELECT id FROM users WHERE login = "${login}")`
+      `SELECT login_of_following AS login FROM subscriptions WHERE login_of_follower = "${login}"`
     );
 
     // т.к. исп. агрег. функция (COUNT) при SELECT id, image необходим GROUP BY
@@ -33,7 +34,7 @@ export async function getAccountInfo(login: string): Promise<IAccount | null> {
       `
     );
 
-    const images: [(RowDataPacket & IImage)[], FieldPacket[]] = await db.query(`SELECT * FROM images`);
+    const images: [(RowDataPacket & IImage)[], FieldPacket[]] = await db.query(`SELECT * FROM posts_images`);
 
     posts[0].map(el => {
       el.images = [];

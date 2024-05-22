@@ -1,6 +1,9 @@
 import db from "../db.js";
 import { FieldPacket, RowDataPacket } from "mysql2/promise";
-import { IUser } from "../types/usersSliceTypes.js";
+import { IUser, IAvatar } from "../types/usersSliceTypes.js";
+import { log } from "console";
+
+const url: string = "http://localhost:3001/users_avatars/";
 
 export async function checkLogin(login: string): Promise<{ login: string | null }> {
   const result: [(RowDataPacket & { login: string })[], FieldPacket[]] = await db.query(`SELECT login FROM users WHERE login = "${login}"`);
@@ -17,8 +20,13 @@ export async function checkLogin(login: string): Promise<{ login: string | null 
 
 export async function getUser(login: string): Promise<IUser | null> {
   // не включаем contact, чтобы не отображалось на front; password нужен для проверки
+  // id может пригодиться, хотя на фронт он также не отправляется
   const result: [(RowDataPacket & IUser)[], FieldPacket[]] = await db.query(
-    `SELECT id, login, username, password, avatar, about, gender, verification, recommendation FROM users WHERE contact = "${login}" OR login = "${login}"`
+    `
+      SELECT u.id, u.login, u.username, u.password, a.image AS avatar, u.about, u.gender, u.verification, u.recommendation FROM users AS u
+      LEFT JOIN users_avatars AS a ON a.user_login = u.login
+      WHERE contact = "${login}" OR login = "${login}"
+    `
   ); // без "" не работает
 
   const user = result[0][0];
@@ -26,6 +34,7 @@ export async function getUser(login: string): Promise<IUser | null> {
   // recommendation - рекомендация аккаунтов других пользователей, можно настраивать
 
   if (user) {
+    if (user.avatar) user.avatar = url + user.avatar;
     user.verification = Boolean(user.verification);
     user.recommendation = Boolean(user.recommendation);
     return user;
@@ -34,7 +43,7 @@ export async function getUser(login: string): Promise<IUser | null> {
   return null;
 }
 
-export async function addUser(contact: string, login: string, usernameParam: string | undefined, password: string) {
+export async function addUser(login: string, usernameParam: string | undefined, contact: string, password: string) {
   const lastId: number = await getLastUserId();
 
   let username: string | null;
@@ -44,7 +53,7 @@ export async function addUser(contact: string, login: string, usernameParam: str
     username = null;
   }
 
-  await db.query(`INSERT INTO users(id, contact, login, username, password) VALUES(${lastId + 1}, "${contact}", "${login}", ?, "${password}")`, [
+  await db.query(`INSERT INTO users(id, login, username, contact, password) VALUES(${lastId + 1}, "${login}", ?, "${contact}", "${password}")`, [
     username
   ]);
 
@@ -61,4 +70,21 @@ async function getLastUserId(): Promise<number> {
   }
 
   return 0;
+}
+
+export async function getAvatar(login: string): Promise<IAvatar | null> {
+  const avatarInfo: [(RowDataPacket & IAvatar)[], FieldPacket[]] = await db.query(`SELECT * FROM users_avatars WHERE user_login = "${login}"`);
+
+  if (avatarInfo[0][0]) {
+    const avatar = avatarInfo[0][0];
+    avatar.image = url + avatar.image;
+    return avatar;
+  }
+
+  return null;
+}
+
+export async function postAvatar(login: string, image: string) {
+  await db.query(`INSERT INTO users_avatars(user_login, image) VALUES("${login}", "${image}")`);
+  return getAvatar(login);
 }

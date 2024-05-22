@@ -9,13 +9,22 @@ export async function userRegistrationController(req: Request, res: Response<IRe
     let message: string;
     const response = getResponseTemplate();
 
-    const { contact, login, username, password } = req.body;
+    const { login, username, contact, password } = req.body;
     const checkedLogin = await checkLogin(login);
 
     if (checkedLogin.login === null) {
-      const user = await addNewUser(contact, login, username, password);
+      // логин не занят, регистрируем пользователя
+      const user = await addNewUser(login, username, contact, password);
+      let token;
+
+      if (user) {
+        // проверка требуется типизацией
+        token = getToken(user.login);
+        // удаляем, не стоит отправлять id на frontend
+        delete user.id;
+      }
+
       // после регистрации сразу произойдет переход на home page
-      const token = getToken(login);
       response.data = {
         data: {
           user,

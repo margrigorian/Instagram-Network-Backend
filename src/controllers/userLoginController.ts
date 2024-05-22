@@ -12,7 +12,10 @@ export async function userLoginController(req: Request, res: Response<IResponse>
 
     if (user) {
       // авторизация прошла успешно, выдаем токен
-      const token = getToken(login);
+      const token = getToken(user.login);
+      // удаляем, не стоит отправлять id на frontend
+      delete user.id;
+
       response.data = {
         data: {
           user,

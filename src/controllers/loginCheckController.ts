@@ -13,7 +13,7 @@ export async function loginCheckController(req: Request, res: Response<IResponse
       data: checkedLogin
     };
 
-    return res.status(201).json(response);
+    return res.status(200).json(response);
   } catch (err) {
     const message: string = "500 Server Error";
     const response = getResponseTemplate();

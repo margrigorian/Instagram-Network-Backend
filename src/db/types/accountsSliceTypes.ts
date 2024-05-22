@@ -4,7 +4,7 @@ export interface IPost {
   id: string;
   likes: number;
   comments: number;
-  images?: IImage[];
+  images?: IImage[]; // ? - так как images добавляе позже, после запроса постов
 }
 
 export interface IImage {
@@ -15,7 +15,7 @@ export interface IImage {
 
 export interface IAccount {
   user: IUser;
-  followers: { id: number }[];
+  followers: { login: string }[];
   following: { login: string }[];
   posts: IPost[];
 }

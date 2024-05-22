@@ -11,6 +11,8 @@ export function validate(action: string) {
 
       const schemas: SchemaMap = {
         registration: z.object({
+          login: z.string().min(1),
+          username: z.string().optional(),
           contact: z.union([
             z.string().email(),
             z.string().refine((value: string) => {
@@ -18,8 +20,6 @@ export function validate(action: string) {
               return phoneRegex.test(value);
             })
           ]),
-          login: z.string().min(1),
-          username: z.string().optional(),
           password: z.string().min(5)
         }),
         authorization: z.object({
