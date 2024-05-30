@@ -13,8 +13,6 @@ export async function checkUser(login: string, password: string): Promise<IUser 
   if (user && user.password) {
     areSamePassword = await bcript.compare(password, user.password); // проверка соответствия пароля
     delete user.password; //  чтобы на front не был отправлен пароль
-    delete user.about; // лишнее, не нужно при первичном входе
-    delete user.gender;
   }
 
   if (user && areSamePassword) {
@@ -31,8 +29,6 @@ export async function addNewUser(login: string, username: string | undefined, co
   // проверка, требуемая типизацией
   if (newUser) {
     delete newUser.password; // чтобы на front не был отправлен пароль
-    delete newUser.about; // лишнее, не нужно при первичном входе
-    delete newUser.gender;
   }
 
   return newUser;

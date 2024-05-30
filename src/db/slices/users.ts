@@ -1,7 +1,6 @@
 import db from "../db.js";
 import { FieldPacket, RowDataPacket } from "mysql2/promise";
 import { IUser, IAvatar } from "../types/usersSliceTypes.js";
-import { log } from "console";
 
 const url: string = "http://localhost:3001/users_avatars/";
 
@@ -43,7 +42,7 @@ export async function getUser(login: string): Promise<IUser | null> {
   return null;
 }
 
-export async function addUser(login: string, usernameParam: string | undefined, contact: string, password: string) {
+export async function addUser(login: string, usernameParam: string | undefined, contact: string, password: string): Promise<IUser | null> {
   const lastId: number = await getLastUserId();
 
   let username: string | null;
@@ -53,11 +52,30 @@ export async function addUser(login: string, usernameParam: string | undefined, 
     username = null;
   }
 
-  await db.query(`INSERT INTO users(id, login, username, contact, password) VALUES(${lastId + 1}, "${login}", ?, "${contact}", "${password}")`, [
-    username
-  ]);
+  await db.query(
+    `INSERT INTO users(id, login, username, contact, password, about) VALUES(${lastId + 1}, "${login}", ?, "${contact}", "${password}", "${""}")`,
+    [username]
+  );
 
   return getUser(login);
+}
+
+export async function updateUserInfo(login: string, about: string, gender: string | null, recommendation: boolean): Promise<IUser | null> {
+  let valueOfRecommendation: number;
+  recommendation ? (valueOfRecommendation = 1) : (valueOfRecommendation = 0);
+
+  await db.query(
+    `
+      UPDATE users SET about = "${about}", gender = "${gender}", recommendation = "${valueOfRecommendation}"
+      WHERE login = "${login}"
+    `
+  );
+
+  const user = await getUser(login);
+  delete user?.id;
+  delete user?.password;
+  // отправляем обновленную информацию
+  return user;
 }
 
 async function getLastUserId(): Promise<number> {
@@ -84,7 +102,16 @@ export async function getAvatar(login: string): Promise<IAvatar | null> {
   return null;
 }
 
-export async function postAvatar(login: string, image: string) {
+export async function postAvatar(login: string, image: string): Promise<IAvatar | null> {
   await db.query(`INSERT INTO users_avatars(user_login, image) VALUES("${login}", "${image}")`);
   return getAvatar(login);
+}
+
+export async function putAvatar(login: string, image: string): Promise<IAvatar | null> {
+  await db.query(`UPDATE users_avatars SET image = "${image}" WHERE user_login = "${login}"`);
+  return getAvatar(login);
+}
+
+export async function deleteAvatar(login: string): Promise<void> {
+  await db.query(`DELETE FROM users_avatars WHERE user_login = "${login}"`);
 }

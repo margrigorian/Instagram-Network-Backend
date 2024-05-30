@@ -5,6 +5,16 @@ import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 export function validate(action: string) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
+      // для userInformationUpdate, со страницы profile/edit
+      if (req.body.recommendation && typeof req.body.recommendation === "string") {
+        // преобразуем, т.к. в FormData все значения str
+        if (req.body.recommendation === "false") {
+          req.body.recommendation = false;
+        } else if (req.body.recommendation === "true") {
+          req.body.recommendation = true;
+        }
+      }
+
       interface SchemaMap {
         [action: string]: z.ZodSchema; // Dynamic property names with string keys for actions
       }
@@ -25,6 +35,11 @@ export function validate(action: string) {
         authorization: z.object({
           login: z.string().min(1),
           password: z.string().min(5)
+        }),
+        userInformationUpdate: z.object({
+          about: z.string(),
+          gender: z.string().min(1).nullable(),
+          recommendation: z.boolean()
         })
       };
 
