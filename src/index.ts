@@ -4,6 +4,7 @@ import path from "path";
 import authRouter from "./routing/authRouter.js";
 import accountRouter from "./routing/accountRouter.js";
 import profileEditingRouter from "./routing/profileEditingRouter.js";
+import newPostRouter from "./routing/newPostRouter.js";
 
 const app: Application = express();
 const PORT: number = 3001;
@@ -16,6 +17,8 @@ app.use("/", authRouter);
 app.use("/accounts", accountRouter);
 app.use("/profile", profileEditingRouter);
 app.use("/users_avatars", express.static(path.join(currentFolderPath, "users_avatars"))); // постоянное исп. папки users_avatars
+app.use("/new_post", newPostRouter);
+app.use("/posts_images", express.static(path.join(currentFolderPath, "posts_images")));
 
 app.listen(PORT, () => {
   console.log(`Server has started on PORT ${PORT}`);

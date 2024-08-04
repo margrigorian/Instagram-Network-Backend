@@ -1,17 +1,5 @@
 import { IUser } from "./usersSliceTypes.js";
-
-export interface IPost {
-  id: string;
-  likes: number;
-  comments: number;
-  images?: IImage[]; // ? - так как images добавляе позже, после запроса постов
-}
-
-export interface IImage {
-  img_index: number;
-  image: string;
-  post_id?: string;
-}
+import { IPost, IImage } from "./postsSliceTypes.js";
 
 export interface IAccount {
   user: IUser;

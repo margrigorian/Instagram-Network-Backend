@@ -40,6 +40,9 @@ export function validate(action: string) {
           about: z.string(),
           gender: z.string().min(1).nullable(),
           recommendation: z.boolean()
+        }),
+        postPublication: z.object({
+          caption: z.string()
         })
       };
 
