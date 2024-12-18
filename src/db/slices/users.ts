@@ -1,6 +1,6 @@
 import db from "../db.js";
 import { FieldPacket, RowDataPacket } from "mysql2/promise";
-import { IUser, IAvatar } from "../types/usersSliceTypes.js";
+import { IUser, ISubscriptions, IAvatar } from "../types/usersSliceTypes.js";
 
 const url: string = "http://localhost:3001/users_avatars/";
 
@@ -40,6 +40,20 @@ export async function getUser(login: string): Promise<IUser | null> {
   }
 
   return null;
+}
+
+export async function getUserSubscriptions(login: string): Promise<ISubscriptions> {
+  const followers: [(RowDataPacket & { login: string })[], FieldPacket[]] = await db.query(
+    `SELECT login_of_follower AS login FROM subscriptions WHERE login_of_following = "${login}"`
+  );
+  const following: [(RowDataPacket & { login: string })[], FieldPacket[]] = await db.query(
+    `SELECT login_of_following AS login FROM subscriptions WHERE login_of_follower = "${login}"`
+  );
+
+  return {
+    followers: followers[0],
+    following: following[0]
+  };
 }
 
 export async function addUser(login: string, usernameParam: string | undefined, contact: string, password: string): Promise<IUser | null> {

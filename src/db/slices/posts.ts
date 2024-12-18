@@ -1,52 +1,87 @@
 import db from "../db.js";
 import { FieldPacket, RowDataPacket } from "mysql2/promise";
 import { IPost, IImage } from "../types/postsSliceTypes.js";
+import { string } from "zod";
 
-const url: string = "http://localhost:3001/posts_images/";
+const imagesFolderUrl: string = "http://localhost:3001/posts_images/";
+const avatarsFolderUrl: string = "http://localhost:3001/users_avatars/";
+
+// (SELECT COUNT(*) FROM likes_on_posts WHERE post_id = p.id) AS likes_number FROM posts AS p
 
 export async function getPosts(key: string, value: string): Promise<(RowDataPacket & IPost)[]> {
   // т.к. исп. агрег. функция (COUNT) при SELECT id, image необходим GROUP BY
   // без подзапросов получить реальное число ком., лайков не получалось, все перемножалось
   const posts: [(RowDataPacket & IPost)[], FieldPacket[]] = await db.query(
     `
-        SELECT p.id AS id, p.caption AS caption, p.hashtags AS hashtags, p.user_links AS user_links, p.time AS time,
-        (SELECT COUNT(*) FROM comments WHERE post_id = p.id) AS comments_number,
-        (SELECT COUNT(*) FROM likes_on_posts WHERE post_id = p.id) AS likes_number FROM posts AS p
-        LEFT JOIN comments AS c ON p.id = c.post_id
-        LEFT JOIN likes_on_posts AS l ON p.id = l.post_id
-        ${
-          key === "login"
-            ? `WHERE p.user_login = "${value}"`
-            : key === "hashtag"
-              ? `WHERE p.hashtags LIKE "${value}" || p.hashtags LIKE "${value};%" || p.hashtags LIKE "%;${value};%" || p.hashtags LIKE "%;${value}"`
-              : `WHERE p.id = "${value}"`
-        }
-        GROUP BY id
-        ORDER BY time DESC
-      `
+      SELECT p.id AS id, p.caption AS caption, p.hashtags AS hashtags, p.user_links AS user_links, 
+      p.time AS time, p.user_login AS user_login, u.verification AS verification, a.image AS avatar,
+      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) AS comments_number,
+      GROUP_CONCAT(DISTINCT l.user_login) AS likes FROM posts AS p
+      LEFT JOIN users AS u ON u.login = p.user_login
+      LEFT JOIN comments AS c ON c.post_id = p.id
+      LEFT JOIN likes_on_posts AS l ON l.post_id = p.id
+      LEFT JOIN users_avatars AS a ON a.user_login = p.user_login
+      ${
+        key === "login"
+          ? `WHERE p.user_login = "${value}"`
+          : key === "hashtag"
+            ? `WHERE p.hashtags LIKE "${value}" || p.hashtags LIKE "${value};%" || p.hashtags LIKE "%;${value};%" || p.hashtags LIKE "%;${value}"`
+            : key === "id"
+              ? `WHERE p.id = "${value}"`
+              : ""
+      }
+      GROUP BY id, avatar
+      ORDER BY time DESC
+    `
   );
   // через функцию выше можно запросить посты к аккаунту, посты по хештегу, конркетный пост по его id
+  // все посту в разделе "интересное"
 
-  const promisesOfImagesArray: Promise<(RowDataPacket & IImage)[]>[] = posts[0].map(el => {
-    // по id поста запрашиваем изображения
-    return getPostsImages(el.id);
-  });
+  if (posts[0].length > 0) {
+    const promisesOfImagesArray: Promise<(RowDataPacket & IImage)[]>[] = posts[0].map(el => {
+      // по id поста запрашиваем изображения
+      return getPostsImages(el.id);
+    });
 
-  const images: (RowDataPacket & IImage)[][] = await Promise.all(promisesOfImagesArray).then(result => result);
+    const images: (RowDataPacket & IImage)[][] = await Promise.all(promisesOfImagesArray).then(result => result);
 
-  // выстраиваем путь к изображениям
-  images.map(arr => {
-    arr.map(item => (item.image = url + item.image));
-    return arr;
-  });
+    // выстраиваем путь к изображениям
+    images.map(arr => {
+      arr.map(item => (item.image = imagesFolderUrl + item.image));
+      return arr;
+    });
 
-  // добавляем изображения к постам
-  posts[0].map((el, i) => {
-    el.images = images[i];
-    // el.hashtags = el.hashtags.split(";");
-    // el.user_links = el.hashtags.split(";");
-    return el;
-  });
+    // добавляем изображения к постам, путь к папке аватарок
+    posts[0].map((el, i) => {
+      if (el.avatar) {
+        el.avatar = avatarsFolderUrl + el.avatar;
+      }
+      el.images = images[i];
+      // проверка, требуемая типизацией
+      if (typeof el.hashtags === "string" && typeof el.user_links === "string") {
+        if (el.hashtags) {
+          el.hashtags = el.hashtags.split(";");
+        } else {
+          // переводим в массив, нужно для frontend
+          el.hashtags = [];
+        }
+
+        if (el.user_links) {
+          el.user_links = el.user_links.split(";");
+        } else {
+          // переводим в массив, нужно для frontend
+          el.user_links = [];
+        }
+      }
+      // проверка, требуемая типизацией
+      if (typeof el.likes === "string") {
+        el.likes = el.likes.split(",");
+      } else {
+        el.likes = [];
+      }
+      return el;
+    });
+  }
 
   return posts[0];
 }

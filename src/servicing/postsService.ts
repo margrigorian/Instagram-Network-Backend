@@ -34,11 +34,11 @@ export async function getElementsOfCaptionAndPostPublication(login: string, capt
 
       if (key_word) {
         if (symbol === "#") {
-          hashtags_array.push(key_word);
+          hashtags_array.push(symbol + key_word);
         } else {
           // логины не проверяем, все будут кликабельны (нет аккаунта - значит нет)
           // так представлено и в инстаграмме
-          user_links_array.push(key_word);
+          user_links_array.push(symbol + key_word);
         }
       }
     });

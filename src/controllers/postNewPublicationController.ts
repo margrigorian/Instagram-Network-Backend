@@ -10,7 +10,7 @@ export async function postNewPublication(req: Request, res: Response<IResponse>)
     const { user, caption } = req.body;
     const images = req.files as Express.Multer.File[] | undefined;
 
-    if (images) {
+    if (images && images.length > 0) {
       const newPost = await getElementsOfCaptionAndPostPublication(user.login, caption, images);
 
       response.data = {

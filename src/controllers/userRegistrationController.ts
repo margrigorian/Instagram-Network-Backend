@@ -3,6 +3,7 @@ import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 import { checkLogin } from "../db/slices/users.js";
 import { addNewUser } from "../servicing/authService.js";
 import { getToken } from "../servicing/authService.js";
+import { getUserSubscriptions } from "../db/slices/users.js";
 
 export async function userRegistrationController(req: Request, res: Response<IResponse>) {
   try {
@@ -17,21 +18,25 @@ export async function userRegistrationController(req: Request, res: Response<IRe
       const user = await addNewUser(login, username, contact, password);
       let token;
 
+      // проверка требуется типизацией
       if (user) {
-        // проверка требуется типизацией
         token = getToken(user.login);
         // удаляем, не стоит отправлять id на frontend
         delete user.id;
-      }
+        // запрашиваем подписки
+        const subscriptions = await getUserSubscriptions(user.login);
 
-      // после регистрации сразу произойдет переход на home page
-      response.data = {
-        data: {
-          user,
-          token
-        }
-      };
-      return res.status(201).json(response);
+        // после регистрации сразу произойдет переход на home page
+        response.data = {
+          data: {
+            user,
+            followers: subscriptions.followers,
+            following: subscriptions.following,
+            token
+          }
+        };
+        return res.status(201).json(response);
+      }
     }
 
     message = "User login already exists";

@@ -7,8 +7,8 @@ type Message = {
   message: string;
 };
 
-function getResponseTemplate<T extends IResponse>(): T {
-  return { data: null, error: null } as T;
+function getResponseTemplate(): IResponse {
+  return { data: null, error: null };
 }
 
 export default getResponseTemplate;

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 import { checkUser, getToken } from "../servicing/authService.js";
+import { getUserSubscriptions } from "../db/slices/users.js";
 
 export async function userLoginController(req: Request, res: Response<IResponse>) {
   try {
@@ -15,10 +16,14 @@ export async function userLoginController(req: Request, res: Response<IResponse>
       const token = getToken(user.login);
       // удаляем, не стоит отправлять id на frontend
       delete user.id;
+      // запрашиваем подписки
+      const subscriptions = await getUserSubscriptions(user.login);
 
       response.data = {
         data: {
           user,
+          followers: subscriptions.followers,
+          following: subscriptions.following,
           token
         }
       };
