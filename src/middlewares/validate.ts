@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import z from "zod";
-import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
+import getResponseTemplate from "../lib/responseTemplate.js";
 
 export function validate(action: string) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -43,10 +43,28 @@ export function validate(action: string) {
         }),
         postPublication: z.object({
           caption: z.string()
+        }),
+        postComment: z.object({
+          content: z.string().min(1),
+          under_comment: z.number().nullable()
         })
       };
 
-      const validatedData = schemas[action].safeParse(req.body);
+      let validatedData;
+
+      // так как на странице публикации совершаются несколько действий по методу post
+      if (action === "postComment") {
+        if (req.body.comment) {
+          validatedData = schemas["postComment"].safeParse(req.body);
+        } else {
+          // нет comment body, значит отправлен запрос на лайк к комментарию или посту
+          next();
+          return;
+        }
+      } else {
+        // все остальные случаи валидации
+        validatedData = schemas[action].safeParse(req.body);
+      }
 
       if (validatedData.success) {
         next();

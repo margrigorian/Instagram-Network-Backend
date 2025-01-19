@@ -34,7 +34,7 @@ export async function addNewUser(login: string, username: string | undefined, co
   return newUser;
 }
 
-export function getToken(login: string) {
+export function getToken(login: string): string {
   // id более надежен, так как к нему мы получаем доступ непосредственно после входа на страницу
   // login же виден всем
   const payload = {
@@ -50,7 +50,7 @@ export async function checkToken(token: string): Promise<IUser | null> {
     const decodedToken: string | JwtPayload = jwt.verify(token, secret); // при ошибке пробрасывает throw
 
     if (typeof decodedToken === "object") {
-      const user = await getUser(decodedToken.login); // проверка наличия юзера с таким id, возращ. объект c пользователем
+      const user = await getUser(decodedToken.login); // проверка наличия юзера с таким login, возращ. объект c пользователем
 
       if (user) {
         // пользователь найден

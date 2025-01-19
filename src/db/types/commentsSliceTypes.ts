@@ -10,3 +10,14 @@ export interface IComment {
   likes: string | string[] | null; // в последующем string преобразуем в string[]
   subcomments?: IComment[]; // subcomments добавляются в процессе, не сразу
 }
+
+export interface ISearchComment {
+  id: string;
+  post_id: string;
+  user_login: string;
+}
+
+export interface IUserLikeOnComment {
+  comment_id: number;
+  user_login: string;
+}

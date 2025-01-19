@@ -1,14 +1,13 @@
 import db from "../db.js";
 import { FieldPacket, RowDataPacket } from "mysql2/promise";
-import { IPost, IImage } from "../types/postsSliceTypes.js";
-import { string } from "zod";
+import { IPost, IImage, ISearchPost, IUserLikeOnPost } from "../types/postsSliceTypes.js";
 
 const imagesFolderUrl: string = "http://localhost:3001/posts_images/";
 const avatarsFolderUrl: string = "http://localhost:3001/users_avatars/";
 
 // (SELECT COUNT(*) FROM likes_on_posts WHERE post_id = p.id) AS likes_number FROM posts AS p
 
-export async function getPosts(key: string, value: string): Promise<(RowDataPacket & IPost)[]> {
+export async function getPosts(key: string, value: string): Promise<IPost[]> {
   // т.к. исп. агрег. функция (COUNT) при SELECT id, image необходим GROUP BY
   // без подзапросов получить реальное число ком., лайков не получалось, все перемножалось
   const posts: [(RowDataPacket & IPost)[], FieldPacket[]] = await db.query(
@@ -38,12 +37,12 @@ export async function getPosts(key: string, value: string): Promise<(RowDataPack
   // все посту в разделе "интересное"
 
   if (posts[0].length > 0) {
-    const promisesOfImagesArray: Promise<(RowDataPacket & IImage)[]>[] = posts[0].map(el => {
+    const promisesOfImagesArray: Promise<IImage[]>[] = posts[0].map(el => {
       // по id поста запрашиваем изображения
       return getPostsImages(el.id);
     });
 
-    const images: (RowDataPacket & IImage)[][] = await Promise.all(promisesOfImagesArray).then(result => result);
+    const images: IImage[][] = await Promise.all(promisesOfImagesArray).then(result => result);
 
     // выстраиваем путь к изображениям
     images.map(arr => {
@@ -86,12 +85,26 @@ export async function getPosts(key: string, value: string): Promise<(RowDataPack
   return posts[0];
 }
 
-async function getPostsImages(id: string): Promise<(RowDataPacket & IImage)[]> {
+async function getPostsImages(id: string): Promise<IImage[]> {
   // массивы изображения будут в треубуемом порядке по отношению к постам
   const image: [(RowDataPacket & IImage)[], FieldPacket[]] = await db.query(
     `SELECT img_index, image FROM posts_images WHERE post_id = "${id}" ORDER BY img_index ASC`
   );
   return image[0];
+}
+
+// для внутренних проверок, быстрого поиска
+export async function getPost(post_id: string): Promise<ISearchPost | null> {
+  const post: [(RowDataPacket & ISearchPost)[], FieldPacket[]] = await db.query(
+    `SELECT p.id as id, p.user_login as login FROM posts as p WHERE id = ?`,
+    [post_id]
+  );
+
+  if (post[0].length > 0) {
+    return post[0][0];
+  }
+
+  return null;
 }
 
 export async function publishPost(
@@ -131,4 +144,21 @@ export async function publishPost(
   const post = await getPosts("post", id);
 
   return post[0];
+}
+
+export async function getUserLikeOnPost(post_id: string, login: string): Promise<IUserLikeOnPost | null> {
+  const like: [(RowDataPacket & IUserLikeOnPost)[], FieldPacket[]] = await db.query(
+    `SELECT * FROM likes_on_posts WHERE post_id = "${post_id}" AND user_login = "${login}"`
+  );
+
+  if (like[0][0]) {
+    return like[0][0];
+  }
+
+  return null;
+}
+
+export async function addLikeToPost(post_id: string, login: string): Promise<IUserLikeOnPost | null> {
+  await db.query(`INSERT INTO likes_on_posts(post_id, user_login) VALUE("${post_id}", "${login}")`);
+  return getUserLikeOnPost(post_id, login);
 }

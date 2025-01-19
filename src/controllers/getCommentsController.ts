@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import getResponseTemplate from "../lib/responseTemplate.js";
-import { getPosts } from "../db/slices/posts.js";
+import { getPost } from "../db/slices/posts.js";
 import { getComments } from "../db/slices/comments.js";
 
 export async function getCommentsController(req: Request, res: Response) {
@@ -10,9 +10,9 @@ export async function getCommentsController(req: Request, res: Response) {
     const response = getResponseTemplate();
     // проверяем наличие поста
 
-    const post = await getPosts("id", post_id);
+    const post = await getPost(post_id);
 
-    if (post.length > 0) {
+    if (post) {
       const comments = await getComments(post_id);
       response.data = {
         data: comments
