@@ -85,7 +85,7 @@ export async function getPosts(key: string, value: string): Promise<IPost[]> {
   return posts[0];
 }
 
-async function getPostsImages(id: string): Promise<IImage[]> {
+export async function getPostsImages(id: string): Promise<IImage[]> {
   // массивы изображения будут в треубуемом порядке по отношению к постам
   const image: [(RowDataPacket & IImage)[], FieldPacket[]] = await db.query(
     `SELECT img_index, image FROM posts_images WHERE post_id = "${id}" ORDER BY img_index ASC`
@@ -96,7 +96,7 @@ async function getPostsImages(id: string): Promise<IImage[]> {
 // для внутренних проверок, быстрого поиска
 export async function getPost(post_id: string): Promise<ISearchPost | null> {
   const post: [(RowDataPacket & ISearchPost)[], FieldPacket[]] = await db.query(
-    `SELECT p.id as id, p.user_login as login FROM posts as p WHERE id = ?`,
+    `SELECT p.id as id, p.user_login as user_login FROM posts as p WHERE id = ?`,
     [post_id]
   );
 
@@ -141,9 +141,23 @@ export async function publishPost(
   await db.query(`INSERT INTO posts_images(img_index, image, post_id) VALUES ${expression.join(",")}`, params);
 
   // запрашивам данные нового поста
-  const post = await getPosts("post", id);
+  const post = await getPosts("id", id);
 
   return post[0];
+}
+
+export async function deleteImage(post_id: string, img_index: number): Promise<void> {
+  await db.query(
+    `
+      DELETE FROM posts_images WHERE post_id = "${post_id}" AND img_index = "${img_index}"
+    `
+  );
+}
+
+export async function deletePost(post_id: string): Promise<IPost> {
+  const deletedPost = await getPosts("id", post_id);
+  await db.query(`DELETE FROM posts WHERE id = "${post_id}"`);
+  return deletedPost[0];
 }
 
 export async function getUserLikeOnPost(post_id: string, login: string): Promise<IUserLikeOnPost | null> {
@@ -161,4 +175,12 @@ export async function getUserLikeOnPost(post_id: string, login: string): Promise
 export async function addLikeToPost(post_id: string, login: string): Promise<IUserLikeOnPost | null> {
   await db.query(`INSERT INTO likes_on_posts(post_id, user_login) VALUE("${post_id}", "${login}")`);
   return getUserLikeOnPost(post_id, login);
+}
+
+export async function deleteUserLikeOnPost(liked_post_id: string, login: string): Promise<void> {
+  await db.query(
+    `
+      DELETE FROM likes_on_posts WHERE post_id = "${liked_post_id}" AND user_login = "${login}"
+    `
+  );
 }

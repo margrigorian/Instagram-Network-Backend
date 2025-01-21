@@ -148,3 +148,11 @@ export async function addLikeToComment(comment_id: number, login: string): Promi
   await db.query(`INSERT INTO likes_on_comments(comment_id, user_login) VALUE("${comment_id}", "${login}")`);
   return getUserLikeOnComment(comment_id, login);
 }
+
+export async function deleteUserLikeOnComment(liked_comment_id: number, login: string): Promise<void> {
+  await db.query(
+    `
+      DELETE FROM likes_on_comments WHERE comment_id = "${liked_comment_id}" AND user_login = "${login}"
+    `
+  );
+}
