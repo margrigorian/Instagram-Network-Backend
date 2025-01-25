@@ -41,7 +41,7 @@ export function validate(action: string) {
           gender: z.string().min(1).nullable(),
           recommendation: z.boolean()
         }),
-        postPublication: z.object({
+        postOrUpdatePublication: z.object({
           caption: z.string()
         }),
         postComment: z.object({

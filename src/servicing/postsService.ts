@@ -1,16 +1,22 @@
 import path from "path";
 import fs from "fs/promises";
-import { deleteImage, deletePost, getPostsImages, publishPost } from "../db/slices/posts.js";
-import { IImage, IPost } from "../db/types/postsSliceTypes.js";
+import { deleteImage, deletePost, getPostsImages, publishPost, updatePost } from "../db/slices/posts.js";
 import { getHashtagsAndUserLinks } from "../lib/getHashtagsAndUserLinksFunction.js";
+import { IImage, IPost } from "../db/types/postsSliceTypes.js";
 
-export async function getKeyWordsOfCaptionAndPostPublication(login: string, caption: string, images: Express.Multer.File[]): Promise<IPost> {
+export async function getKeywordsOfCaptionAndPostPublication(login: string, caption: string, images: Express.Multer.File[]): Promise<IPost> {
   // id поста
   const id = Math.random().toString(36).slice(2, 10);
   const keyWords = getHashtagsAndUserLinks(caption);
   const imagesArray: string[] = images.map(el => el.filename);
 
   const post = await publishPost(id, imagesArray, caption, keyWords.hashtags, keyWords.user_links, login);
+  return post;
+}
+
+export async function getKeywordsOfCaptionAndUpdatePublication(post_id: string, caption: string, login: string): Promise<IPost> {
+  const keyWords = getHashtagsAndUserLinks(caption);
+  const post = await updatePost(post_id, caption, keyWords.hashtags, keyWords.user_links);
   return post;
 }
 

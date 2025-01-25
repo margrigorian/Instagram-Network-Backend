@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
-import { getKeyWordsOfCaptionAndPostPublication } from "../servicing/postsService.js";
+import { getKeywordsOfCaptionAndPostPublication } from "../servicing/postsService.js";
 
 export async function postNewPublication(req: Request, res: Response<IResponse>) {
   try {
@@ -11,7 +11,7 @@ export async function postNewPublication(req: Request, res: Response<IResponse>)
     const images = req.files as Express.Multer.File[] | undefined;
 
     if (images && images.length > 0) {
-      const newPost = await getKeyWordsOfCaptionAndPostPublication(user.login, caption, images);
+      const newPost = await getKeywordsOfCaptionAndPostPublication(user.login, caption, images);
 
       response.data = {
         data: newPost

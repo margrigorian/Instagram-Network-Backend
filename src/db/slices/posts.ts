@@ -146,6 +146,18 @@ export async function publishPost(
   return post[0];
 }
 
+export async function updatePost(post_id: string, caption: string, hashtags: string, user_links: string): Promise<IPost> {
+  await db.query(
+    `
+      UPDATE posts SET caption = "${caption}", hashtags = "${hashtags}", user_links = "${user_links}"
+      WHERE id = "${post_id}"
+    `
+  );
+  // запрашивам данные обновленного поста
+  const post = await getPosts("id", post_id);
+  return post[0];
+}
+
 export async function deleteImage(post_id: string, img_index: number): Promise<void> {
   await db.query(
     `

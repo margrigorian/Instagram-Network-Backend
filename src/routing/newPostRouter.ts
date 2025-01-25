@@ -7,6 +7,6 @@ import { postNewPublication } from "../controllers/postNewPublicationController.
 const router: Router = express.Router();
 
 // при другом порядке middlewares req.body оказывается пустым, upload обнуляет
-router.post("/", postImageUpload.array("images", 10), authenticate(), validate("postPublication"), postNewPublication);
+router.post("/", postImageUpload.array("images", 10), authenticate(), validate("postOrUpdatePublication"), postNewPublication);
 
 export default router;

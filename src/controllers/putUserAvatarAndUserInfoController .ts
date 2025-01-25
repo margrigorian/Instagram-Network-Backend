@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
-import { getAvatar, putAvatar, updateUserInfo } from "../db/slices/users.js";
 import { putUserAvatar } from "../servicing/userService.js";
+import { getAvatar, updateUserInfo } from "../db/slices/users.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function putUserAvatarAndUserInfoController(req: Request, res: Response<IResponse>) {
   try {
@@ -18,7 +18,7 @@ export async function putUserAvatarAndUserInfoController(req: Request, res: Resp
       // если аватарка есть в базе данных, обновляем
       if (avatar) {
         image = image.slice(14);
-        // const updatedAvatar = await putAvatar(user.login, image);
+
         const updatedAvatar = await putUserAvatar(user.login, avatar.image, image);
 
         response.data = {
