@@ -1,9 +1,22 @@
 import { IUser } from "./usersSliceTypes.js";
-import { IPost, IImage } from "./postsSliceTypes.js";
+import { IPost } from "./postsSliceTypes.js";
 
 export interface IAccount {
   user: IUser;
-  followers: { login: string }[];
-  following: { login: string }[];
   posts: IPost[];
+  followers_count: number;
+  followings_count: number;
+}
+
+export interface IFollowerOrFollowing {
+  login: string;
+  username: string | null;
+  avatar: string | null;
+  verifiaction: boolean;
+  follow_account?: boolean;
+}
+
+export interface ISubsciption {
+  login_of_follower: string;
+  login_of_following: string;
 }

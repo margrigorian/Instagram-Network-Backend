@@ -11,12 +11,12 @@ export interface IUser {
   recommendation: boolean;
 }
 
-export interface ISubscriptions {
-  followers: { login: string }[];
-  following: { login: string }[];
-}
-
 export interface IAvatar {
   user_login: string;
   image: string;
+}
+
+export interface IUserSubscriptions {
+  followers: { login: string }[];
+  followings: { login: string }[];
 }

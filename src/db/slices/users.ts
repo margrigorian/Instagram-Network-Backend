@@ -1,6 +1,6 @@
 import db from "../db.js";
 import { FieldPacket, RowDataPacket } from "mysql2/promise";
-import { IUser, ISubscriptions, IAvatar } from "../types/usersSliceTypes.js";
+import { IUser, IAvatar, IUserSubscriptions } from "../types/usersSliceTypes.js";
 
 const url: string = "http://localhost:3001/users_avatars/";
 
@@ -42,17 +42,18 @@ export async function getUser(login: string): Promise<IUser | null> {
   return null;
 }
 
-export async function getUserSubscriptions(login: string): Promise<ISubscriptions> {
+export async function getUserSubscriptions(login: string): Promise<IUserSubscriptions> {
   const followers: [(RowDataPacket & { login: string })[], FieldPacket[]] = await db.query(
     `SELECT login_of_follower AS login FROM subscriptions WHERE login_of_following = "${login}"`
   );
-  const following: [(RowDataPacket & { login: string })[], FieldPacket[]] = await db.query(
+
+  const followings: [(RowDataPacket & { login: string })[], FieldPacket[]] = await db.query(
     `SELECT login_of_following AS login FROM subscriptions WHERE login_of_follower = "${login}"`
   );
 
   return {
     followers: followers[0],
-    following: following[0]
+    followings: followings[0]
   };
 }
 

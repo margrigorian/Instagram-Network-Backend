@@ -16,6 +16,12 @@ export function queriesParamsValidate(params: string) {
           liked_comment_id: z.preprocess(a => Number(a), z.number()).optional(),
           like_on_post: z.literal("false").optional(),
           img_index: z.preprocess(a => Number(a), z.number()).optional()
+        }),
+        loginOfFollowing: z.object({
+          login_of_following: z.string().min(1)
+        }),
+        searchParam: z.object({
+          search: z.string().optional()
         })
       };
 

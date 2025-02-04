@@ -18,7 +18,7 @@ export async function accountController(req: Request, res: Response<IResponse>) 
       return res.status(200).json(response);
     }
 
-    const message: string = "404 Not Found";
+    const message: string = "400 Bad Request";
     response.error = {
       message
     };

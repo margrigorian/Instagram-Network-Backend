@@ -23,7 +23,7 @@ export async function userLoginController(req: Request, res: Response<IResponse>
         data: {
           user,
           followers: subscriptions.followers,
-          following: subscriptions.following,
+          following: subscriptions.followings,
           token
         }
       };

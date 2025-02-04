@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
-import { checkLogin } from "../db/slices/users.js";
+import { checkLogin, getUserSubscriptions } from "../db/slices/users.js";
 import { addNewUser } from "../servicing/authService.js";
 import { getToken } from "../servicing/authService.js";
-import { getUserSubscriptions } from "../db/slices/users.js";
 
 export async function userRegistrationController(req: Request, res: Response<IResponse>) {
   try {
@@ -31,7 +30,7 @@ export async function userRegistrationController(req: Request, res: Response<IRe
           data: {
             user,
             followers: subscriptions.followers,
-            following: subscriptions.following,
+            followings: subscriptions.followings,
             token
           }
         };
