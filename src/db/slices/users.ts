@@ -5,7 +5,12 @@ import { IUser, IAvatar, IUserSubscriptions } from "../types/usersSliceTypes.js"
 const url: string = "http://localhost:3001/users_avatars/";
 
 export async function checkLogin(login: string): Promise<{ login: string | null }> {
-  const result: [(RowDataPacket & { login: string })[], FieldPacket[]] = await db.query(`SELECT login FROM users WHERE login = "${login}"`);
+  const result: [(RowDataPacket & { login: string })[], FieldPacket[]] = await db.query(
+    `
+      SELECT login FROM users WHERE login = ?
+    `,
+    [login]
+  );
   const existingLogin = result[0][0]; // или же будет undefined, typescript не ругается
 
   if (existingLogin) {
@@ -24,9 +29,10 @@ export async function getUser(login: string): Promise<IUser | null> {
     `
       SELECT u.id, u.login, u.username, u.password, a.image AS avatar, u.about, u.gender, u.verification, u.recommendation FROM users AS u
       LEFT JOIN users_avatars AS a ON a.user_login = u.login
-      WHERE contact = "${login}" OR login = "${login}"
-    `
-  ); // без "" не работает
+      WHERE contact = ? OR login = ?
+    `,
+    [login, login] // по количеству знаков вопроса, выносим отдельно, в целям безопасности
+  );
 
   const user = result[0][0];
   // verification - синяя галочка в инсте
@@ -45,7 +51,7 @@ export async function getUser(login: string): Promise<IUser | null> {
 export async function getUserSubscriptions(login: string): Promise<IUserSubscriptions> {
   const followers: [(RowDataPacket & { login: string })[], FieldPacket[]] = await db.query(
     `SELECT login_of_follower AS login FROM subscriptions WHERE login_of_following = "${login}"`
-  );
+  ); // без "" выходит ошибка
 
   const followings: [(RowDataPacket & { login: string })[], FieldPacket[]] = await db.query(
     `SELECT login_of_following AS login FROM subscriptions WHERE login_of_follower = "${login}"`
@@ -68,8 +74,10 @@ export async function addUser(login: string, usernameParam: string | undefined, 
   }
 
   await db.query(
-    `INSERT INTO users(id, login, username, contact, password, about) VALUES(${lastId + 1}, "${login}", ?, "${contact}", "${password}", "${""}")`,
-    [username]
+    `
+      INSERT INTO users(id, login, username, contact, password, about) VALUES(${lastId + 1}, "${login}", ?, ?, ?, "${""}")
+    `,
+    [username, contact, password]
   );
 
   return getUser(login);
@@ -81,9 +89,10 @@ export async function updateUserInfo(login: string, about: string, gender: strin
 
   await db.query(
     `
-      UPDATE users SET about = "${about}", gender = "${gender}", recommendation = "${valueOfRecommendation}"
+      UPDATE users SET about = ?, ${gender ? "gender = ?" : "gender = NULL"}, recommendation = "${valueOfRecommendation}"
       WHERE login = "${login}"
-    `
+    `,
+    [about, gender]
   );
 
   const user = await getUser(login);

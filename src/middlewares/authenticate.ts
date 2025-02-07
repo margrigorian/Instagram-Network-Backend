@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 import { checkToken } from "../servicing/authService.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export function authenticate() {
   return async (req: Request, res: Response<IResponse>, next: NextFunction) => {

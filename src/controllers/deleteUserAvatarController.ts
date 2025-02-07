@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
-import { getAvatar, deleteAvatar } from "../db/slices/users.js";
+import { getAvatar } from "../db/slices/users.js";
 import { deleteUserAvatar } from "../servicing/userService.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function deleteUserAvatarController(req: Request, res: Response<IResponse>) {
   try {
@@ -13,7 +13,6 @@ export async function deleteUserAvatarController(req: Request, res: Response<IRe
 
     if (avatar) {
       // если аватара есть в базе данных, удаляем
-      // await deleteAvatar(user.login);
       await deleteUserAvatar(user.login, avatar.image);
 
       response.data = {

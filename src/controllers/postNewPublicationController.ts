@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 import { getKeywordsOfCaptionAndPostPublication } from "../servicing/postsService.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function postNewPublication(req: Request, res: Response<IResponse>) {
   try {

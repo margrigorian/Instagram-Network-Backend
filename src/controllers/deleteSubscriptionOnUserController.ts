@@ -1,28 +1,26 @@
 import { Request, Response } from "express";
 import { checkLogin } from "../db/slices/users.js";
-import { getFollowers } from "../db/slices/accounts.js";
+import { getSubscription, deleteSubscription } from "../db/slices/accounts.js";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
-export async function getFollowersController(req: Request, res: Response<IResponse>) {
+export async function deleteSubscriptionOnUserController(req: Request, res: Response<IResponse>) {
   try {
     const response = getResponseTemplate();
     let message: string;
     const { user } = req.body;
     const { login } = req.params;
     const isExistedAccount = await checkLogin(login);
-    let search: string;
-    if (req.query.search && typeof req.query.search === "string") {
-      search = req.query.search;
-    } else {
-      search = "";
-    }
 
-    if (isExistedAccount.login) {
-      const followers = await getFollowers(user.login, login, search);
-      response.data = {
-        data: followers
-      };
-      return res.status(200).json(response);
+    if (isExistedAccount.login && isExistedAccount.login !== user.login) {
+      const subscription = await getSubscription(user.login, login);
+      // подпсика существует, удаляем
+      if (subscription) {
+        await deleteSubscription(user.login, login);
+        response.data = {
+          data: subscription
+        };
+        return res.status(200).json(response);
+      }
     }
 
     message = "400 Bad Request";

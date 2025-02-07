@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs/promises";
-import { deleteAvatar, putAvatar } from "../db/slices/users.js";
+import { putAvatar, deleteAvatar } from "../db/slices/users.js";
 import { IAvatar } from "../db/types/usersSliceTypes.js";
 
 export async function putUserAvatar(login: string, old_avatar_path: string, new_avatar: string): Promise<IAvatar | null> {

@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import getResponseTemplate from "../lib/responseTemplate.js";
 import { getPost } from "../db/slices/posts.js";
 import { getComments } from "../db/slices/comments.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
-export async function getCommentsController(req: Request, res: Response) {
+export async function getCommentsController(req: Request, res: Response<IResponse>) {
   try {
     // не проверяем в middleware, т.к. это всегда string и параметр должен быть, иначе меняется путь
     const { post_id } = req.params;

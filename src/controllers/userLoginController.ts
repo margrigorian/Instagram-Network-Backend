@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 import { checkUser, getToken } from "../servicing/authService.js";
 import { getUserSubscriptions } from "../db/slices/users.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function userLoginController(req: Request, res: Response<IResponse>) {
   try {

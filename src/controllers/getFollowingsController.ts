@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 import { checkLogin } from "../db/slices/users.js";
 import { getFollowings } from "../db/slices/accounts.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function getFollowingsController(req: Request, res: Response<IResponse>) {
   try {

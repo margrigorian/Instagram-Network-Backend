@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
-import { deleteUserLikeOnPost, getPost, getPostsImages, getUserLikeOnPost } from "../db/slices/posts.js";
-import { deleteComment, deleteUserLikeOnComment, getComment, getUserLikeOnComment } from "../db/slices/comments.js";
+import { getPost, getPostsImages, getUserLikeOnPost, deleteUserLikeOnPost } from "../db/slices/posts.js";
 import { deletePostsImage, deletePublication } from "../servicing/postsService.js";
+import { getComment, getUserLikeOnComment, deleteComment, deleteUserLikeOnComment } from "../db/slices/comments.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function deleteCommentAndLikesAndPostsImagesAndPublicationController(req: Request, res: Response<IResponse>) {
   try {

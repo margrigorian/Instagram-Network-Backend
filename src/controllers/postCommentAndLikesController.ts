@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
-import { addLikeToPost, getPost, getUserLikeOnPost } from "../db/slices/posts.js";
+import { getPost, getUserLikeOnPost, addLikeToPost } from "../db/slices/posts.js";
+import { getComment, getUserLikeOnComment, addLikeToComment } from "../db/slices/comments.js";
 import { getKeyWordsOfTextAndPostComment } from "../servicing/commentService.js";
-import { addLikeToComment, getComment, getUserLikeOnComment } from "../db/slices/comments.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function postCommentAndLikesController(req: Request, res: Response<IResponse>) {
   try {

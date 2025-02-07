@@ -1,6 +1,6 @@
 import { postComment } from "../db/slices/comments.js";
-import { IComment } from "../db/types/commentsSliceTypes.js";
 import { getHashtagsAndUserLinks } from "../lib/getHashtagsAndUserLinksFunction.js";
+import { IComment } from "../db/types/commentsSliceTypes.js";
 
 export async function getKeyWordsOfTextAndPostComment(
   post_id: string,

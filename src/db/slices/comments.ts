@@ -97,9 +97,9 @@ export async function postComment(
   await db.query(
     `
       INSERT INTO comments(id, content, hashtags, user_links, under_comment, post_id, user_login)
-      VALUES("${lastCommentId + 1}", "${content}", "${hashtags}", "${user_links}", ${under_comment ? `"${under_comment}"` : "NULL"}, ?, "${login}")
+      VALUES("${lastCommentId + 1}", ?, ?, ?, ${under_comment ? "?" : "NULL"}, "${post_id}", "${login}")
     `,
-    [post_id]
+    [content, hashtags, user_links, under_comment]
   );
 
   const comment = await getCommentsWithUsersAndLikesInfo(2, lastCommentId + 1);

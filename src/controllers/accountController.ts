@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 import { getAccountInfo } from "../db/slices/accounts.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function accountController(req: Request, res: Response<IResponse>) {
   try {

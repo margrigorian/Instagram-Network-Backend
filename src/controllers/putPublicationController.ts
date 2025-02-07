@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 import { getPost } from "../db/slices/posts.js";
 import { getKeywordsOfCaptionAndUpdatePublication } from "../servicing/postsService.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
-export async function putPublicationController(req: Request, res: Response) {
+export async function putPublicationController(req: Request, res: Response<IResponse>) {
   try {
     const { user } = req.body;
     const { post_id } = req.params;

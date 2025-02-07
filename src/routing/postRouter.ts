@@ -4,8 +4,8 @@ import { queriesParamsValidate } from "../middlewares/queriesParamsValidate.js";
 import { validate } from "../middlewares/validate.js";
 import { getCommentsController } from "../controllers/getCommentsController.js";
 import { postCommentAndLikesController } from "../controllers/postCommentAndLikesController.js";
-import { deleteCommentAndLikesAndPostsImagesAndPublicationController } from "../controllers/deleteCommentAndLikesAndPostsImagesAndPublicationController.js";
 import { putPublicationController } from "../controllers/putPublicationController.js";
+import { deleteCommentAndLikesAndPostsImagesAndPublicationController } from "../controllers/deleteCommentAndLikesAndPostsImagesAndPublicationController.js";
 
 const router: Router = express.Router();
 

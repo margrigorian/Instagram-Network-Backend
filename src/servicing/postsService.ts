@@ -1,8 +1,8 @@
 import path from "path";
 import fs from "fs/promises";
-import { deleteImage, deletePost, getPostsImages, publishPost, updatePost } from "../db/slices/posts.js";
+import { getPostsImages, publishPost, updatePost, deleteImage, deletePost } from "../db/slices/posts.js";
 import { getHashtagsAndUserLinks } from "../lib/getHashtagsAndUserLinksFunction.js";
-import { IImage, IPost } from "../db/types/postsSliceTypes.js";
+import { IPost, IImage } from "../db/types/postsSliceTypes.js";
 
 export async function getKeywordsOfCaptionAndPostPublication(login: string, caption: string, images: Express.Multer.File[]): Promise<IPost> {
   // id поста

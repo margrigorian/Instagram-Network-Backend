@@ -122,9 +122,9 @@ export async function publishPost(
   await db.query(
     `
         INSERT INTO posts(id, caption, hashtags, user_links, user_login, time) 
-        VALUES("${id}", "${caption}", ?, ?, "${user_login}", ?)
+        VALUES("${id}", ?, ?, ?, "${user_login}", "${post_time}")
     `,
-    [hashtags, user_links, post_time]
+    [caption, hashtags, user_links]
   );
 
   const expression: string[] = [];
@@ -149,9 +149,9 @@ export async function publishPost(
 export async function updatePost(post_id: string, caption: string, hashtags: string, user_links: string): Promise<IPost> {
   await db.query(
     `
-      UPDATE posts SET caption = "${caption}", hashtags = "${hashtags}", user_links = "${user_links}"
-      WHERE id = "${post_id}"
-    `
+      UPDATE posts SET caption = ?, hashtags = ?, user_links = ? WHERE id = "${post_id}"
+    `,
+    [caption, hashtags, user_links]
   );
   // запрашивам данные обновленного поста
   const post = await getPosts("id", post_id);

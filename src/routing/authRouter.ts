@@ -1,7 +1,7 @@
 import express, { Router } from "express";
 import { validate } from "../middlewares/validate.js";
-import { loginCheckController } from "../controllers/loginCheckController.js";
 import { userLoginController } from "../controllers/userLoginController.js";
+import { loginCheckController } from "../controllers/loginCheckController.js";
 import { userRegistrationController } from "../controllers/userRegistrationController.js";
 
 const router: Router = express.Router();

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { putUserAvatar } from "../servicing/userService.js";
 import { getAvatar, updateUserInfo } from "../db/slices/users.js";
+import { putUserAvatar } from "../servicing/userService.js";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function putUserAvatarAndUserInfoController(req: Request, res: Response<IResponse>) {

@@ -120,3 +120,12 @@ export async function postSubscription(login_of_follower: string, login_of_follo
 
   return getSubscription(login_of_follower, login_of_following);
 }
+
+export async function deleteSubscription(login_of_follower: string, login_of_following: string): Promise<void> {
+  await db.query(
+    `
+        DELETE FROM subscriptions WHERE login_of_follower = "${login_of_follower}" 
+        AND login_of_following = "${login_of_following}"
+      `
+  );
+}

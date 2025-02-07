@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
-import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 import { checkLogin, getUserSubscriptions } from "../db/slices/users.js";
-import { addNewUser } from "../servicing/authService.js";
-import { getToken } from "../servicing/authService.js";
+import { addNewUser, getToken } from "../servicing/authService.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function userRegistrationController(req: Request, res: Response<IResponse>) {
   try {

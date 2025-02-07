@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import z from "zod";
-import getResponseTemplate from "../lib/responseTemplate.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export function validate(action: string) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response<IResponse>, next: NextFunction) => {
     try {
       // для userInformationUpdate, со страницы profile/edit
       if (req.body.recommendation && typeof req.body.recommendation === "string") {

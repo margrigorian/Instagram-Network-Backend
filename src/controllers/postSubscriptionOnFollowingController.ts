@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 import { checkLogin } from "../db/slices/users.js";
 import { getSubscription, postSubscription } from "../db/slices/accounts.js";
+import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function postSubscriptionOnFollowingController(req: Request, res: Response<IResponse>) {
   try {
@@ -9,7 +9,7 @@ export async function postSubscriptionOnFollowingController(req: Request, res: R
     let message: string;
     const { user } = req.body;
     const { login } = req.params; // пользователь, на странице которого мы находимся
-    const { login_of_following } = req.query; // подписчик этого пользователя
+    const { login_of_following } = req.query; // подписка этого пользователя
 
     // на своей странице по пути /following не могут осуществляться подписки
     if (login !== user.login) {
@@ -21,14 +21,14 @@ export async function postSubscriptionOnFollowingController(req: Request, res: R
         if (typeof login_of_following === "string" && login_of_following !== user.login) {
           isExistedLoginOfFollowing = await checkLogin(login_of_following);
         }
-        // логин follower пользователя, на которого мы хотим подписаться, верен?
+        // логин following пользователя, на которого мы хотим подписаться, верен?
         if (isExistedLoginOfFollowing.login) {
           // проверяем является ли пользователь (req.param), на странице которого мы находимся,
           // подписчиком following (req.query), на которого и мы хотим подписаться
           const isExistedSubscription = await getSubscription(isExistedLogin.login, isExistedLoginOfFollowing.login);
           // есть соответствие
           if (isExistedSubscription) {
-            // подписаны ли уже мы на этого follower?
+            // подписаны ли уже мы на этого following?
             const subscription = await getSubscription(user.login, isExistedLoginOfFollowing.login);
 
             // добавляем подписку, если она отсутствует
