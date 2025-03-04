@@ -18,7 +18,7 @@ export async function putPublicationController(req: Request, res: Response<IResp
         response.data = {
           data: updatedPost
         };
-        return res.status(201).json(response);
+        return res.status(200).json(response);
       } else {
         message = "403 Forbidden"; // прав на действие нет
         response.error = {

@@ -2,7 +2,7 @@ import db from "../db.js";
 import { FieldPacket, RowDataPacket } from "mysql2/promise";
 import { getUser, getUserSubscriptions } from "./users.js";
 import { getPosts } from "./posts.js";
-import { IAccount, IFollowerOrFollowing, ISubsciption } from "../types/accountsSliceTypes.js";
+import { IAccount, ISearchAccount, ISubsciption } from "../types/accountsSliceTypes.js";
 
 const url: string = "http://localhost:3001/users_avatars/";
 
@@ -31,8 +31,8 @@ export async function getAccountInfo(login: string): Promise<IAccount | null> {
   return null;
 }
 
-export async function getFollowers(user_login: string, account_login: string, search: string): Promise<IFollowerOrFollowing[]> {
-  const followersInfoArr: [(RowDataPacket & IFollowerOrFollowing)[], FieldPacket[]] = await db.query(
+export async function getFollowers(user_login: string, account_login: string, search: string): Promise<ISearchAccount[]> {
+  const followersInfoArr: [(RowDataPacket & ISearchAccount)[], FieldPacket[]] = await db.query(
     `
       SELECT DISTINCT s.login_of_follower AS login, u.username AS username, a.image AS avatar,
       u.verification AS verification FROM subscriptions AS s
@@ -44,7 +44,7 @@ export async function getFollowers(user_login: string, account_login: string, se
     [`%${search}%`, `%${search}%`]
   );
 
-  const followersPromises: Promise<RowDataPacket & IFollowerOrFollowing>[] = followersInfoArr[0].map(async el => {
+  const followersPromises: Promise<RowDataPacket & ISearchAccount>[] = followersInfoArr[0].map(async el => {
     // формируем путь к файлу изображения
     if (el.avatar) el.avatar = url + el.avatar;
     // чтобы в объекте самого себя (user) не было свойства follow_account
@@ -60,8 +60,8 @@ export async function getFollowers(user_login: string, account_login: string, se
   return followers;
 }
 
-export async function getFollowings(user_login: string, account_login: string, search: string): Promise<IFollowerOrFollowing[]> {
-  const followingsInfoArr: [(RowDataPacket & IFollowerOrFollowing)[], FieldPacket[]] = await db.query(
+export async function getFollowings(user_login: string, account_login: string, search: string): Promise<ISearchAccount[]> {
+  const followingsInfoArr: [(RowDataPacket & ISearchAccount)[], FieldPacket[]] = await db.query(
     `
       SELECT DISTINCT s.login_of_following AS login, u.username AS username, a.image AS avatar, 
       u.verification AS verification FROM subscriptions AS s
@@ -73,7 +73,7 @@ export async function getFollowings(user_login: string, account_login: string, s
     [`%${search}%`, `%${search}%`]
   );
 
-  const followingsPromises: Promise<RowDataPacket & IFollowerOrFollowing>[] = followingsInfoArr[0].map(async el => {
+  const followingsPromises: Promise<RowDataPacket & ISearchAccount>[] = followingsInfoArr[0].map(async el => {
     // формируем путь к файлу изображения
     if (el.avatar) el.avatar = url + el.avatar;
     // если это followings другого пользователя, проводим проверку подписаны ли и мы на них
@@ -128,4 +128,23 @@ export async function deleteSubscription(login_of_follower: string, login_of_fol
         AND login_of_following = "${login_of_following}"
       `
   );
+}
+
+export async function searchAccounts(search: string): Promise<ISearchAccount[]> {
+  const accounts: [(RowDataPacket & ISearchAccount)[], FieldPacket[]] = await db.query(
+    `
+      SELECT u.login AS login, u.username AS username, a.image AS avatar, 
+      u.verification AS verification FROM users AS u
+      LEFT JOIN users_avatars AS a ON u.login = a.user_login
+      WHERE u.login LIKE ? OR u.username LIKE ?
+      LIMIT 5
+    `,
+    [`%${search}%`, `%${search}%`]
+  );
+
+  accounts[0].map(el => {
+    if (el.avatar) el.avatar = url + el.avatar;
+  });
+
+  return accounts[0];
 }

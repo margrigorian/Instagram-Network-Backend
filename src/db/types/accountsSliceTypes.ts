@@ -8,7 +8,7 @@ export interface IAccount {
   followings_count: number;
 }
 
-export interface IFollowerOrFollowing {
+export interface ISearchAccount {
   login: string;
   username: string | null;
   avatar: string | null;

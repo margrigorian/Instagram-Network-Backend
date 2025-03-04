@@ -13,7 +13,7 @@ import { deleteSubscriptionOnFollowingController } from "../controllers/deleteSu
 
 const router: Router = express.Router();
 
-router.get("/:login", accountController);
+router.get("/:login", queriesParamsValidate("searchParam"), accountController);
 router.post("/:login", authenticate(), postSubscriptionOnUserController);
 router.delete("/:login", authenticate(), deleteSubscriptionOnUserController);
 router.get("/:login/followers", authenticate(), queriesParamsValidate("searchParam"), getFollowersController);

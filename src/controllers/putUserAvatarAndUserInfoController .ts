@@ -24,7 +24,7 @@ export async function putUserAvatarAndUserInfoController(req: Request, res: Resp
         response.data = {
           data: updatedAvatar
         };
-        return res.status(201).json(response);
+        return res.status(200).json(response);
       }
     } else {
       // в противном случае осуществляется запрос на обновление данных юзера
@@ -32,7 +32,7 @@ export async function putUserAvatarAndUserInfoController(req: Request, res: Resp
       response.data = {
         data: updatdeUserInfo
       };
-      return res.status(201).json(response);
+      return res.status(200).json(response);
     }
 
     // аватарку обновить невозможно, ее нет
