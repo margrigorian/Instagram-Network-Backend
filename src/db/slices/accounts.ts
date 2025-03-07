@@ -130,7 +130,7 @@ export async function deleteSubscription(login_of_follower: string, login_of_fol
   );
 }
 
-export async function searchAccounts(search: string): Promise<ISearchAccount[]> {
+export async function getSearchAccounts(search: string): Promise<ISearchAccount[]> {
   const accounts: [(RowDataPacket & ISearchAccount)[], FieldPacket[]] = await db.query(
     `
       SELECT u.login AS login, u.username AS username, a.image AS avatar, 

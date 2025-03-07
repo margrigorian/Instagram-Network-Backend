@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { searchAccounts } from "../db/slices/accounts.js";
+import { getSearchAccounts } from "../db/slices/accounts.js";
 import { ISearchAccount } from "../db/types/accountsSliceTypes.js";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
@@ -11,7 +11,7 @@ export async function getSearchAccountsController(req: Request, res: Response<IR
 
     if (search && typeof search === "string") {
       // необходимый запрос для панели search c фронтенда
-      accounts = await searchAccounts(search);
+      accounts = await getSearchAccounts(search);
     }
 
     response.data = {

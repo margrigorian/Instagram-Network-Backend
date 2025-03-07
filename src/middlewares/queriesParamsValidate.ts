@@ -22,6 +22,10 @@ export function queriesParamsValidate(params: string) {
         }),
         searchParam: z.object({
           search: z.string().optional()
+        }),
+        exploreParams: z.object({
+          keyword: z.string().optional(),
+          search: z.string().optional()
         })
       };
 

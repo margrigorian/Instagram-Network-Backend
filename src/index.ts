@@ -6,6 +6,7 @@ import accountRouter from "./routing/accountRouter.js";
 import profileEditingRouter from "./routing/profileEditingRouter.js";
 import newPostRouter from "./routing/newPostRouter.js";
 import postRouter from "./routing/postRouter.js";
+import exploreRouter from "./routing/exploreRouter.js";
 
 const app: Application = express();
 const PORT: number = 3001;
@@ -21,6 +22,7 @@ app.use("/users_avatars", express.static(path.join(currentFolderPath, "users_ava
 app.use("/new_post", newPostRouter);
 app.use("/posts_images", express.static(path.join(currentFolderPath, "posts_images")));
 app.use("/p", postRouter);
+app.use("/explore", exploreRouter);
 
 app.listen(PORT, () => {
   console.log(`Server has started on PORT ${PORT}`);

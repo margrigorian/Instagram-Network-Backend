@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import { getAccountInfo, searchAccounts } from "../db/slices/accounts.js";
+import { checkLogin } from "../db/slices/users.js";
+import { getAccountInfo, getSearchAccounts } from "../db/slices/accounts.js";
+import { IAccount, ISearchAccount } from "../db/types/accountsSliceTypes.js";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function accountController(req: Request, res: Response<IResponse>) {
@@ -7,35 +9,29 @@ export async function accountController(req: Request, res: Response<IResponse>) 
     // не проверяем в middleware, т.к. это всегда string и параметр должен быть, иначе меняется путь
     const { login } = req.params;
     const search = req.query.search;
+    let account: IAccount | null = null;
+    let searchAccounts: ISearchAccount[] = [];
     const response = getResponseTemplate();
 
-    // проверка, требуемая типизацией
-    if (search && typeof search === "string") {
-      // необходимый запрос для панели search c фронтенда
-      const accounts = await searchAccounts(search);
+    const checkedLogin = await checkLogin(login);
+
+    if (checkedLogin) {
+      // проверка, требуемая типизацией
+      if (search && typeof search === "string") {
+        // необходимый запрос для панели search c фронтенда
+        searchAccounts = await getSearchAccounts(search);
+      } else {
+        account = await getAccountInfo(login);
+      }
 
       response.data = {
         data: {
-          // лишний запрос по аккаунту никчему
-          accountInfo: null,
-          searchAccounts: accounts
+          accountInfo: account,
+          searchAccounts
         }
       };
 
       return res.status(200).json(response);
-    } else {
-      const account = await getAccountInfo(login);
-
-      if (account) {
-        response.data = {
-          data: {
-            accountInfo: account,
-            searchAccounts: []
-          }
-        };
-
-        return res.status(200).json(response);
-      }
     }
 
     const message: string = "400 Bad Request";

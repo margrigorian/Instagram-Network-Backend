@@ -7,8 +7,25 @@ const avatarsFolderUrl: string = "http://localhost:3001/users_avatars/";
 
 // (SELECT COUNT(*) FROM likes_on_posts WHERE post_id = p.id) AS likes_number FROM posts AS p
 
-export async function getPosts(key: string, value: string): Promise<IPost[]> {
-  // т.к. исп. агрег. функция (COUNT) при SELECT id, image необходим GROUP BY
+export async function getPosts(key: string = "", value: string = ""): Promise<IPost[]> {
+  const filters: string[] = [];
+  const params: string[] = [];
+
+  if (key === "login") {
+    filters.push("p.user_login = ?");
+    params.push(value);
+  } else if (key === "hashtag") {
+    filters.push("p.hashtags LIKE ? || p.hashtags LIKE ? || p.hashtags LIKE ? || p.hashtags LIKE ?");
+    params.push(value, `${value};%`, `%;${value};%`, `%;${value}`);
+  } else if (key === "follower") {
+    filters.push("s.login_of_follower = ");
+    params.push(value);
+  } else if (key === "id") {
+    filters.push("p.id = ?");
+    params.push(value);
+  }
+
+  // т.к. исп. агрег. функция (COUNT) при SELECT id, image, необходим GROUP BY
   // без подзапросов получить реальное число ком., лайков не получалось, все перемножалось
   const posts: [(RowDataPacket & IPost)[], FieldPacket[]] = await db.query(
     `
@@ -17,24 +34,19 @@ export async function getPosts(key: string, value: string): Promise<IPost[]> {
       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) AS comments_number,
       GROUP_CONCAT(DISTINCT l.user_login) AS likes FROM posts AS p
       LEFT JOIN users AS u ON u.login = p.user_login
+      LEFT JOIN users_avatars AS a ON a.user_login = p.user_login
       LEFT JOIN comments AS c ON c.post_id = p.id
       LEFT JOIN likes_on_posts AS l ON l.post_id = p.id
-      LEFT JOIN users_avatars AS a ON a.user_login = p.user_login
-      ${
-        key === "login"
-          ? `WHERE p.user_login = "${value}"`
-          : key === "hashtag"
-            ? `WHERE p.hashtags LIKE "${value}" || p.hashtags LIKE "${value};%" || p.hashtags LIKE "%;${value};%" || p.hashtags LIKE "%;${value}"`
-            : key === "id"
-              ? `WHERE p.id = "${value}"`
-              : ""
-      }
+      LEFT JOIN subscriptions AS s ON s.login_of_following = p.user_login
+      ${filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : ""}
       GROUP BY id, avatar
       ORDER BY time DESC
-    `
+    `,
+    params
   );
-  // через функцию выше можно запросить посты к аккаунту, посты по хештегу, конркетный пост по его id
-  // все посту в разделе "интересное"
+
+  // через функцию выше можно запросить посты к аккаунту, посты по хештегу, конкретный пост по его id
+  // все посты в разделе "интересное"
 
   if (posts[0].length > 0) {
     const promisesOfImagesArray: Promise<IImage[]>[] = posts[0].map(el => {
