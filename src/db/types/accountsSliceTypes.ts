@@ -8,6 +8,16 @@ export interface IAccount {
   followings_count: number;
 }
 
+export interface IRecommendedAccount {
+  login: string;
+  username: string;
+  avatar: string | null;
+  verifiaction: boolean;
+  followers?: string;
+  // для группировки аккаунтов по количеству их подписчиков
+  followers_count?: number;
+}
+
 export interface ISearchAccount {
   login: string;
   username: string | null;

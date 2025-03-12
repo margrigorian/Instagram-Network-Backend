@@ -11,10 +11,10 @@ export async function checkLogin(login: string): Promise<{ login: string | null 
     `,
     [login]
   );
-  const existingLogin = result[0][0]; // или же будет undefined, typescript не ругается
+  const isExistingLogin = result[0][0]; // или же будет undefined, typescript не ругается
 
-  if (existingLogin) {
-    return existingLogin;
+  if (isExistingLogin) {
+    return isExistingLogin;
   } else {
     return {
       login: null // легче будет обрабатывать на front, нежели null сразу

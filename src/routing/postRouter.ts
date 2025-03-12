@@ -9,7 +9,7 @@ import { deleteCommentAndLikesAndPostsImagesAndPublicationController } from "../
 
 const router: Router = express.Router();
 
-router.get("/:post_id", getCommentsController);
+router.get("/:post_id", authenticate(), getCommentsController);
 router.post("/:post_id", authenticate(), queriesParamsValidate("optionalProperties"), validate("postComment"), postCommentAndLikesController);
 router.put("/:post_id", authenticate(), validate("postOrUpdatePublication"), putPublicationController);
 router.delete("/:post_id", authenticate(), queriesParamsValidate("optionalProperties"), deleteCommentAndLikesAndPostsImagesAndPublicationController);

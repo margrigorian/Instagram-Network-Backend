@@ -2,7 +2,7 @@ import db from "../db.js";
 import { FieldPacket, RowDataPacket } from "mysql2/promise";
 import { getUser, getUserSubscriptions } from "./users.js";
 import { getPosts } from "./posts.js";
-import { IAccount, ISearchAccount, ISubsciption } from "../types/accountsSliceTypes.js";
+import { IAccount, IRecommendedAccount, ISearchAccount, ISubsciption } from "../types/accountsSliceTypes.js";
 
 const url: string = "http://localhost:3001/users_avatars/";
 
@@ -47,6 +47,8 @@ export async function getFollowers(user_login: string, account_login: string, se
   const followersPromises: Promise<RowDataPacket & ISearchAccount>[] = followersInfoArr[0].map(async el => {
     // формируем путь к файлу изображения
     if (el.avatar) el.avatar = url + el.avatar;
+    el.verification = Boolean(el.verification);
+
     // чтобы в объекте самого себя (user) не было свойства follow_account
     // это будет отличительной чертой
     if (el.login !== user_login) {
@@ -76,6 +78,8 @@ export async function getFollowings(user_login: string, account_login: string, s
   const followingsPromises: Promise<RowDataPacket & ISearchAccount>[] = followingsInfoArr[0].map(async el => {
     // формируем путь к файлу изображения
     if (el.avatar) el.avatar = url + el.avatar;
+    el.verification = Boolean(el.verification);
+
     // если это followings другого пользователя, проводим проверку подписаны ли и мы на них
     if (user_login !== account_login) {
       // чтобы в объекте самого себя (user) не было свойства follow_account
@@ -130,6 +134,76 @@ export async function deleteSubscription(login_of_follower: string, login_of_fol
   );
 }
 
+export async function getRecommendedAccounts(login: string): Promise<IRecommendedAccount[]> {
+  // подписки пользователя
+  const subscriptions = await getUserSubscriptions(login);
+  // для использования в условии IN
+  const followings = subscriptions.followings.map(el => `"${el.login}"`);
+
+  let recommendations: IRecommendedAccount[] = [];
+
+  if (followings.length > 0) {
+    // в качестве рекомендаций получаем аккаунты, на которые подписаны followings юзера
+    const recommendedAccounts: [(RowDataPacket & IRecommendedAccount)[], FieldPacket[]] = await db.query(
+      `
+      SELECT s.login_of_following AS login, u.username AS username, a.image AS avatar, u.verification AS verification, 
+      GROUP_CONCAT(s.login_of_follower SEPARATOR ', ') AS followers FROM subscriptions AS s
+      LEFT JOIN users_avatars AS a ON a.user_login = s.login_of_following
+      LEFT JOIN users AS u ON u.login = s.login_of_following
+      WHERE s.login_of_follower IN (${followings.join(",")}) 
+      AND s.login_of_following NOT IN ("${login}",${followings.join(",")})
+      GROUP BY s.login_of_following, a.image
+      LIMIT 6
+    `
+    );
+
+    recommendedAccounts[0].map(el => {
+      if (el.avatar) el.avatar = url + el.avatar;
+      el.verification = Boolean(el.verification);
+    });
+
+    recommendations = [...recommendations, ...recommendedAccounts[0]];
+  }
+
+  // если рекомендуемых аккаунтов недостаточно, забираем популярных из списка users
+  if (recommendations.length < 6) {
+    // исключаем себя, свои подсписки и уже имеющиеся рекомендации
+    let accountsFilter = "";
+
+    if (followings.length > 0) {
+      const existedRecommendations = recommendations.reduce((sum, currentItem) => sum + `,"${currentItem.login}"`, "");
+      accountsFilter = `AND u.login NOT IN (${followings.join(",")}${existedRecommendations})`;
+    }
+
+    let accounts: [(RowDataPacket & IRecommendedAccount)[], FieldPacket[]] = await db.query(
+      `
+        SELECT u.login AS login, u.username AS username, a.image AS avatar, u.verification AS verification,
+        COUNT(s.login_of_following) AS followers_count FROM users AS u
+        LEFT JOIN users_avatars AS a ON a.user_login = u.login
+        LEFT JOIN subscriptions AS s ON s.login_of_following = u.login
+        WHERE u.login != "${login}" ${accountsFilter}
+        GROUP BY u.login, u.username, a.image, u.verification 
+        ORDER BY followers_count DESC
+        LIMIT ${6 - recommendations.length}
+      `
+    );
+
+    // добавляем свойство followers,
+    // удаляем свойство followers_count, которое было необходимо для определения
+    // популярных аккаунтов в качестве рекомендации
+    accounts[0] = accounts[0].map(el => {
+      if (el.avatar) el.avatar = url + el.avatar;
+      el.verification = Boolean(el.verification);
+      el.followers = "";
+      delete el.followers_count;
+      return el;
+    });
+    recommendations = [...recommendations, ...accounts[0]];
+  }
+
+  return recommendations;
+}
+
 export async function getSearchAccounts(search: string): Promise<ISearchAccount[]> {
   const accounts: [(RowDataPacket & ISearchAccount)[], FieldPacket[]] = await db.query(
     `
@@ -144,6 +218,7 @@ export async function getSearchAccounts(search: string): Promise<ISearchAccount[
 
   accounts[0].map(el => {
     if (el.avatar) el.avatar = url + el.avatar;
+    el.verification = Boolean(el.verification);
   });
 
   return accounts[0];

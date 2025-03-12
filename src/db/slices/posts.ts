@@ -17,9 +17,9 @@ export async function getPosts(key: string = "", value: string = ""): Promise<IP
   } else if (key === "hashtag") {
     filters.push("p.hashtags LIKE ? || p.hashtags LIKE ? || p.hashtags LIKE ? || p.hashtags LIKE ?");
     params.push(value, `${value};%`, `%;${value};%`, `%;${value}`);
-  } else if (key === "follower") {
-    filters.push("s.login_of_follower = ");
-    params.push(value);
+  } else if (key === "topical_posts") {
+    filters.push("s.login_of_follower = ? OR p.user_login = ?");
+    params.push(value, value);
   } else if (key === "id") {
     filters.push("p.id = ?");
     params.push(value);
@@ -68,6 +68,7 @@ export async function getPosts(key: string = "", value: string = ""): Promise<IP
         el.avatar = avatarsFolderUrl + el.avatar;
       }
       el.images = images[i];
+      el.verification = Boolean(el.verification);
       // проверка, требуемая типизацией
       if (typeof el.hashtags === "string" && typeof el.user_links === "string") {
         if (el.hashtags) {

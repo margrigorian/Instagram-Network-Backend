@@ -41,6 +41,8 @@ async function getCommentsWithUsersAndLikesInfo(indexOfCondition: number, id: st
     if (el.avatar) {
       el.avatar = avatarsFolderUrl + el.avatar;
     }
+    el.verification = Boolean(el.verification);
+
     // проверка, требуемая типизацией
     if (typeof el.hashtags === "string" && typeof el.user_links === "string") {
       if (el.hashtags) {
@@ -112,9 +114,9 @@ export async function postComment(
 }
 
 export async function deleteComment(comment_id: number): Promise<IComment> {
-  const deletedСomment = await getCommentsWithUsersAndLikesInfo(2, comment_id);
+  const deletedComment = await getCommentsWithUsersAndLikesInfo(2, comment_id);
   await db.query(`DELETE FROM comments WHERE id = "${comment_id}"`);
-  return deletedСomment[0];
+  return deletedComment[0];
 }
 
 async function getLastCommentId(): Promise<number> {
