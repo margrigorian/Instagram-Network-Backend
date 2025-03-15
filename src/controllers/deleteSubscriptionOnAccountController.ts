@@ -3,7 +3,7 @@ import { checkLogin } from "../db/slices/users.js";
 import { getSubscription, deleteSubscription } from "../db/slices/accounts.js";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
-export async function deleteSubscriptionOnUserController(req: Request, res: Response<IResponse>) {
+export async function deleteSubscriptionOnAccountController(req: Request, res: Response<IResponse>) {
   try {
     const response = getResponseTemplate();
     let message: string;

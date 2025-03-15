@@ -2,8 +2,8 @@ import express, { Router } from "express";
 import { authenticate } from "../middlewares/authenticate.js";
 import { queriesParamsValidate } from "../middlewares/queriesParamsValidate.js";
 import { accountController } from "../controllers/accountController.js";
-import { postSubscriptionOnUserController } from "../controllers/postSubscriptionOnUserController.js";
-import { deleteSubscriptionOnUserController } from "../controllers/deleteSubscriptionOnUserController.js";
+import { postSubscriptionOnAccountController } from "../controllers/postSubscriptionOnAccountController.js";
+import { deleteSubscriptionOnAccountController } from "../controllers/deleteSubscriptionOnAccountController.js";
 import { getFollowersController } from "../controllers/getFollowersController.js";
 import { postSubscriptionOnFollowerController } from "../controllers/postSubscriptionOnFollowerController.js";
 import { deleteSubscriptionOnFollowerController } from "../controllers/deleteSubscriptionOnFollowerController.js";
@@ -14,8 +14,8 @@ import { deleteSubscriptionOnFollowingController } from "../controllers/deleteSu
 const router: Router = express.Router();
 
 router.get("/:login", queriesParamsValidate("searchParam"), accountController);
-router.post("/:login", authenticate(), postSubscriptionOnUserController);
-router.delete("/:login", authenticate(), deleteSubscriptionOnUserController);
+router.post("/:login", authenticate(), postSubscriptionOnAccountController);
+router.delete("/:login", authenticate(), deleteSubscriptionOnAccountController);
 router.get("/:login/followers", authenticate(), queriesParamsValidate("searchParam"), getFollowersController);
 router.post("/:login/followers", authenticate(), queriesParamsValidate("loginOfFollowing"), postSubscriptionOnFollowerController);
 router.delete("/:login/followers", authenticate(), queriesParamsValidate("loginOfFollowing"), deleteSubscriptionOnFollowerController);

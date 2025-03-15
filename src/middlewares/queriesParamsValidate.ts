@@ -11,6 +11,8 @@ export function queriesParamsValidate(params: string) {
 
       const schemas: SchemaMap = {
         optionalProperties: z.object({
+          post_id: z.string().min(1).optional(),
+          login_of_following: z.string().min(1).optional(),
           // преобразуем query-параметр в число, при несоответствии будет ошибка
           comment_id: z.preprocess(a => Number(a), z.number()).optional(),
           liked_comment_id: z.preprocess(a => Number(a), z.number()).optional(),
