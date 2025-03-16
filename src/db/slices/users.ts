@@ -102,6 +102,10 @@ export async function updateUserInfo(login: string, about: string, gender: strin
   return user;
 }
 
+export async function deleteUser(login: string): Promise<void> {
+  await db.query(`DELETE FROM users WHERE login = "${login}"`);
+}
+
 async function getLastUserId(): Promise<number> {
   const result: [(RowDataPacket & { id: number })[], FieldPacket[]] = await db.query("SELECT id FROM users ORDER BY id DESC LIMIT 1");
 

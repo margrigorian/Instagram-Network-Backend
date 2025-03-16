@@ -6,7 +6,7 @@ import avatarUpload from "../middlewares/avatarUpload.js";
 import { getSearchAccountsController } from "../controllers/getSearchAccountsController.js";
 import { postUserAvatarController } from "../controllers/postUserAvatarController.js";
 import { putUserAvatarAndUserInfoController } from "../controllers/putUserAvatarAndUserInfoController .js";
-import { deleteUserAvatarController } from "../controllers/deleteUserAvatarController.js";
+import { deleteUserAvatarOrAccountController } from "../controllers/deleteUserAvatarOrAccountController.js";
 
 const router: Router = express.Router();
 
@@ -14,6 +14,6 @@ const router: Router = express.Router();
 router.get("/edit", authenticate(), queriesParamsValidate("searchParam"), getSearchAccountsController);
 router.post("/edit", avatarUpload.single("image"), authenticate(), postUserAvatarController);
 router.put("/edit", avatarUpload.single("image"), authenticate(), validate("userInformationUpdate"), putUserAvatarAndUserInfoController);
-router.delete("/edit", authenticate(), deleteUserAvatarController);
+router.delete("/edit", authenticate(), queriesParamsValidate("optionalProperties"), deleteUserAvatarOrAccountController);
 
 export default router;
