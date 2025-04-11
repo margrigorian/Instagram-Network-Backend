@@ -3,14 +3,14 @@ import { getPosts } from "../db/slices/posts.js";
 import { getSearchAccounts } from "../db/slices/accounts.js";
 import { IPost } from "../db/types/postsSliceTypes.js";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
-import { ISearchAccount } from "../db/types/accountsSliceTypes.js";
+import { IListedAccount } from "../db/types/accountsSliceTypes.js";
 
 export async function getExploredPostsController(req: Request, res: Response<IResponse>) {
   try {
     const search = req.query.search;
     const keyword = req.query.keyword;
     let exploredPosts: IPost[] = [];
-    let searchAccounts: ISearchAccount[] = [];
+    let searchAccounts: IListedAccount[] = [];
     const response = getResponseTemplate();
 
     if (search && typeof search === "string") {

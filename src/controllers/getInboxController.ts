@@ -1,21 +1,31 @@
 import { Request, Response } from "express";
+import { getInbox } from "../db/slices/chats.js";
 import { getSearchAccounts } from "../db/slices/accounts.js";
+import { IUser } from "../db/types/usersSliceTypes.js";
+import { IChat } from "../db/types/chatsSliceTypes.js";
 import { IListedAccount } from "../db/types/accountsSliceTypes.js";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
-export async function getSearchAccountsController(req: Request, res: Response<IResponse>) {
+export async function getInboxController(req: Request, res: Response<IResponse>) {
   try {
+    const user: IUser = req.body.user;
     const search = req.query.search;
+    let chats: IChat[] = [];
+    let searchAccounts: IListedAccount[] = [];
     const response = getResponseTemplate();
-    let accounts: IListedAccount[] = [];
 
     if (search && typeof search === "string") {
       // необходимый запрос для панели search c фронтенда
-      accounts = await getSearchAccounts(search);
+      searchAccounts = await getSearchAccounts(search);
+    } else {
+      chats = await getInbox(user.login);
     }
 
     response.data = {
-      data: accounts
+      data: {
+        chats,
+        searchAccounts
+      }
     };
     return res.status(200).json(response);
   } catch (err) {

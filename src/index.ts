@@ -1,4 +1,6 @@
 import express, { Application } from "express";
+import http from "http";
+import { Server, Socket } from "socket.io";
 import cors from "cors";
 import path from "path";
 import authRouter from "./routing/authRouter.js";
@@ -8,11 +10,25 @@ import profileEditingRouter from "./routing/profileEditingRouter.js";
 import newPostRouter from "./routing/newPostRouter.js";
 import postRouter from "./routing/postRouter.js";
 import exploreRouter from "./routing/exploreRouter.js";
+import chatsRouter from "./routing/chatsRouter.js";
+import { addSocketToDB, deleteSocketFromDB, getChatParticipantsSockets } from "./servicing/socketService.js";
+import { IChat } from "./db/types/chatsSliceTypes.js";
+import { ISocket } from "./db/types/socketSliceTypes.js";
 
 const app: Application = express();
+// создаем http-сервер, который будет исп. приложение express для обработки входящих http-запросов
+const server = http.createServer(app);
+// создаем сервер socketIO, который будет привязан к http-серверу
+// и который будет исп. его для прослушивания событий webSocket-соединения
+const socketIO = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE"] // Разрешенные HTTP-методы
+  }
+});
+
 const PORT: number = 3001;
 const currentFolderPath = path.resolve();
-
 app.use(cors());
 app.use(express.json());
 
@@ -25,7 +41,35 @@ app.use("/new_post", newPostRouter);
 app.use("/posts_images", express.static(path.join(currentFolderPath, "posts_images")));
 app.use("/p", postRouter);
 app.use("/explore", exploreRouter);
+app.use("/direct", chatsRouter);
 
-app.listen(PORT, () => {
+socketIO.on("connection", (socket: Socket) => {
+  console.log(`User with ${socket.id} has connected`);
+
+  socket.on("login", async (data: { login: string }) => {
+    // костыль + остается вопрос безопасного доступа
+    await addSocketToDB(data.login, socket.id);
+  });
+
+  socket.on("addChat", async (data: { chat: IChat }) => {
+    let sockets: ISocket[] = [];
+    // проверка, требуемая типизацией
+    if (data.chat.participants) {
+      sockets = await getChatParticipantsSockets(data.chat.participants);
+    }
+
+    // делаем рассылку по socket_id
+    sockets.map(el => {
+      socketIO.to(el.socket_id).emit("chat", data);
+    });
+  });
+
+  socket.on("disconnect", async () => {
+    await deleteSocketFromDB(socket.id);
+    console.log(`User with ${socket.id} has disconnected`);
+  });
+});
+
+server.listen(PORT, () => {
   console.log(`Server has started on PORT ${PORT}`);
 });

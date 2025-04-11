@@ -47,6 +47,9 @@ export function validate(action: string) {
         postComment: z.object({
           content: z.string().min(1),
           under_comment: z.number().nullable()
+        }),
+        postChat: z.object({
+          participants: z.array(z.string()).min(1)
         })
       };
 

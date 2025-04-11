@@ -8,22 +8,19 @@ export interface IAccount {
   followings_count: number;
 }
 
-export interface IRecommendedAccount {
+export interface IListedAccount {
   login: string;
   username: string;
   avatar: string | null;
-  verifiaction: boolean;
+  verification: number | boolean;
+  // СВОЙСТВА, НЕОБХОДИМЫЕ РЕКОМЕНДОВАННЫМ АККАУНТАМ
   followers?: string;
   // для группировки аккаунтов по количеству их подписчиков
   followers_count?: number;
-}
-
-export interface ISearchAccount {
-  login: string;
-  username: string | null;
-  avatar: string | null;
-  verifiaction: boolean;
+  // СВОЙСТВО, НЕОБХОДИМО ПРИ SEARCH
+  // подписан ли пользователь на найденный аккаунт
   follow_account?: boolean;
+  deleted?: boolean;
 }
 
 export interface ISubsciption {

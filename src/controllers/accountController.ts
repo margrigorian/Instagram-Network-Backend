@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { checkLogin } from "../db/slices/users.js";
 import { getAccountInfo, getSearchAccounts } from "../db/slices/accounts.js";
-import { IAccount, ISearchAccount } from "../db/types/accountsSliceTypes.js";
+import { IAccount, IListedAccount } from "../db/types/accountsSliceTypes.js";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function accountController(req: Request, res: Response<IResponse>) {
@@ -10,7 +10,7 @@ export async function accountController(req: Request, res: Response<IResponse>) 
     const { login } = req.params;
     const search = req.query.search;
     let account: IAccount | null = null;
-    let searchAccounts: ISearchAccount[] = [];
+    let searchAccounts: IListedAccount[] = [];
     const response = getResponseTemplate();
 
     const checkedLogin = await checkLogin(login);

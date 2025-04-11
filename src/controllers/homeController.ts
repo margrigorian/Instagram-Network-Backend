@@ -3,7 +3,7 @@ import { getPosts } from "../db/slices/posts.js";
 import { getRecommendedAccounts, getSearchAccounts } from "../db/slices/accounts.js";
 import { IUser } from "../db/types/usersSliceTypes.js";
 import { IPost } from "../db/types/postsSliceTypes.js";
-import { IRecommendedAccount, ISearchAccount } from "../db/types/accountsSliceTypes.js";
+import { IListedAccount } from "../db/types/accountsSliceTypes.js";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
 export async function homeController(req: Request, res: Response<IResponse>) {
@@ -11,8 +11,8 @@ export async function homeController(req: Request, res: Response<IResponse>) {
     const user: IUser = req.body.user;
     const search = req.query.search;
     let posts: IPost[] = [];
-    let recommendedAccounts: IRecommendedAccount[] = [];
-    let searchAccounts: ISearchAccount[] = [];
+    let recommendedAccounts: IListedAccount[] = [];
+    let searchAccounts: IListedAccount[] = [];
     const response = getResponseTemplate();
 
     if (search && typeof search === "string") {

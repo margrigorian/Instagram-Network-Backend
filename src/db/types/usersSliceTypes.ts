@@ -7,7 +7,8 @@ export interface IUser {
   avatar: string | null;
   about: string;
   gender: string | null;
-  verification: boolean;
+  // при запросе number, после преобразуем в boolean
+  verification: number | boolean;
   recommendation: boolean;
 }
 

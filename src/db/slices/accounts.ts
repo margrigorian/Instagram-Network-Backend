@@ -2,7 +2,7 @@ import db from "../db.js";
 import { FieldPacket, RowDataPacket } from "mysql2/promise";
 import { getUser, getUserSubscriptions } from "./users.js";
 import { getPosts } from "./posts.js";
-import { IAccount, IRecommendedAccount, ISearchAccount, ISubsciption } from "../types/accountsSliceTypes.js";
+import { IAccount, IListedAccount, ISubsciption } from "../types/accountsSliceTypes.js";
 
 const url: string = "http://localhost:3001/users_avatars/";
 
@@ -31,8 +31,8 @@ export async function getAccountInfo(login: string): Promise<IAccount | null> {
   return null;
 }
 
-export async function getFollowers(user_login: string, account_login: string, search: string): Promise<ISearchAccount[]> {
-  const followersInfoArr: [(RowDataPacket & ISearchAccount)[], FieldPacket[]] = await db.query(
+export async function getFollowers(user_login: string, account_login: string, search: string): Promise<IListedAccount[]> {
+  const followersInfoArr: [(RowDataPacket & IListedAccount)[], FieldPacket[]] = await db.query(
     `
       SELECT DISTINCT s.login_of_follower AS login, u.username AS username, a.image AS avatar,
       u.verification AS verification FROM subscriptions AS s
@@ -44,7 +44,7 @@ export async function getFollowers(user_login: string, account_login: string, se
     [`%${search}%`, `%${search}%`]
   );
 
-  const followersPromises: Promise<RowDataPacket & ISearchAccount>[] = followersInfoArr[0].map(async el => {
+  const followersPromises: Promise<RowDataPacket & IListedAccount>[] = followersInfoArr[0].map(async el => {
     // формируем путь к файлу изображения
     if (el.avatar) el.avatar = url + el.avatar;
     el.verification = Boolean(el.verification);
@@ -62,8 +62,8 @@ export async function getFollowers(user_login: string, account_login: string, se
   return followers;
 }
 
-export async function getFollowings(user_login: string, account_login: string, search: string): Promise<ISearchAccount[]> {
-  const followingsInfoArr: [(RowDataPacket & ISearchAccount)[], FieldPacket[]] = await db.query(
+export async function getFollowings(user_login: string, account_login: string, search: string): Promise<IListedAccount[]> {
+  const followingsInfoArr: [(RowDataPacket & IListedAccount)[], FieldPacket[]] = await db.query(
     `
       SELECT DISTINCT s.login_of_following AS login, u.username AS username, a.image AS avatar, 
       u.verification AS verification FROM subscriptions AS s
@@ -75,7 +75,7 @@ export async function getFollowings(user_login: string, account_login: string, s
     [`%${search}%`, `%${search}%`]
   );
 
-  const followingsPromises: Promise<RowDataPacket & ISearchAccount>[] = followingsInfoArr[0].map(async el => {
+  const followingsPromises: Promise<RowDataPacket & IListedAccount>[] = followingsInfoArr[0].map(async el => {
     // формируем путь к файлу изображения
     if (el.avatar) el.avatar = url + el.avatar;
     el.verification = Boolean(el.verification);
@@ -134,17 +134,17 @@ export async function deleteSubscription(login_of_follower: string, login_of_fol
   );
 }
 
-export async function getRecommendedAccounts(login: string): Promise<IRecommendedAccount[]> {
+export async function getRecommendedAccounts(login: string): Promise<IListedAccount[]> {
   // подписки пользователя
   const subscriptions = await getUserSubscriptions(login);
   // для использования в условии IN
   const followings = subscriptions.followings.map(el => `"${el.login}"`);
 
-  let recommendations: IRecommendedAccount[] = [];
+  let recommendations: IListedAccount[] = [];
 
   if (followings.length > 0) {
     // в качестве рекомендаций получаем аккаунты, на которые подписаны followings юзера
-    const recommendedAccounts: [(RowDataPacket & IRecommendedAccount)[], FieldPacket[]] = await db.query(
+    const recommendedAccounts: [(RowDataPacket & IListedAccount)[], FieldPacket[]] = await db.query(
       `
       SELECT s.login_of_following AS login, u.username AS username, a.image AS avatar, u.verification AS verification, 
       GROUP_CONCAT(s.login_of_follower SEPARATOR ', ') AS followers FROM subscriptions AS s
@@ -175,7 +175,7 @@ export async function getRecommendedAccounts(login: string): Promise<IRecommende
       accountsFilter = `AND u.login NOT IN (${followings.join(",")}${existedRecommendations})`;
     }
 
-    let accounts: [(RowDataPacket & IRecommendedAccount)[], FieldPacket[]] = await db.query(
+    let accounts: [(RowDataPacket & IListedAccount)[], FieldPacket[]] = await db.query(
       `
         SELECT u.login AS login, u.username AS username, a.image AS avatar, u.verification AS verification,
         COUNT(s.login_of_following) AS followers_count FROM users AS u
@@ -204,8 +204,8 @@ export async function getRecommendedAccounts(login: string): Promise<IRecommende
   return recommendations;
 }
 
-export async function getSearchAccounts(search: string): Promise<ISearchAccount[]> {
-  const accounts: [(RowDataPacket & ISearchAccount)[], FieldPacket[]] = await db.query(
+export async function getSearchAccounts(search: string): Promise<IListedAccount[]> {
+  const accounts: [(RowDataPacket & IListedAccount)[], FieldPacket[]] = await db.query(
     `
       SELECT u.login AS login, u.username AS username, a.image AS avatar, 
       u.verification AS verification FROM users AS u

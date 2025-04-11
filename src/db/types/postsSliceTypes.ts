@@ -6,7 +6,7 @@ export interface IPost {
   user_login: string;
   time: number;
   avatar: string;
-  verification: boolean;
+  verification: number | boolean;
   likes: string | string[] | null; // в последующем string преобразуем в string[]
   comments: number;
   images?: IImage[]; // ? - так как images добавляем позже, после запроса постов
