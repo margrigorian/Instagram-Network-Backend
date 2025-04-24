@@ -1,7 +1,8 @@
 import db from "../db.js";
 import { FieldPacket, RowDataPacket } from "mysql2/promise";
+import { getMessages } from "./messages.js";
 import { IListedAccount } from "../types/accountsSliceTypes.js";
-import { IChat, IMessage } from "../types/chatsSliceTypes.js";
+import { IChat } from "../types/chatsAndMessagesSliceTypes.js";
 
 const avatarsFolderUrl: string = "http://localhost:3001/users_avatars/";
 
@@ -28,10 +29,10 @@ export async function getInbox(login: string): Promise<IChat[]> {
     let chatsWithParticipantsAndLastMessage = await Promise.all(promiseOfChatsWithParticipantsAndLastMessage);
     // сортировка чатов по новым непрочитанным сообщениям и времени их отправки
     chatsWithParticipantsAndLastMessage = chatsWithParticipantsAndLastMessage.sort((a, b) => {
-      // last_message отсутствует
+      // если last_message отсутствует, перемещаем "ниже"
       if (!a.last_message || !b.last_message) {
         // порядок не изменится
-        return 0;
+        return -1;
       } else {
         // если значения is_read одинаковы, сортируем по времени отправки сообщения
         if (a.last_message.is_read === b.last_message.is_read) {
@@ -48,7 +49,7 @@ export async function getInbox(login: string): Promise<IChat[]> {
   return [];
 }
 
-async function getChatById(id: number): Promise<IChat | null> {
+export async function getChatById(id: number): Promise<IChat | null> {
   const chat: [(RowDataPacket & IChat)[], FieldPacket[]] = await db.query(
     `
       SELECT * FROM chats WHERE id = "${id}"
@@ -85,12 +86,12 @@ export async function getDialog(user_login: string, participant: string): Promis
 async function getChatParticipants(chat_id: number): Promise<IListedAccount[]> {
   const participants: [(RowDataPacket & IListedAccount)[], FieldPacket[]] = await db.query(
     `
-        SELECT p.user_login AS login, u.username AS username, a.image AS avatar, 
-        u.verification AS verification FROM chat_participants AS p
-        LEFT JOIN users_avatars AS a ON p.user_login = a.user_login
-        LEFT JOIN users AS u ON p.user_login = u.login
-        WHERE p.chat_id = "${chat_id}" 
-      `
+      SELECT p.user_login AS login, u.username AS username, a.image AS avatar, 
+      u.verification AS verification FROM chat_participants AS p
+      LEFT JOIN users_avatars AS a ON p.user_login = a.user_login
+      LEFT JOIN users AS u ON p.user_login = u.login
+      WHERE p.chat_id = "${chat_id}" 
+    `
   );
 
   participants[0].map(el => {
@@ -108,33 +109,6 @@ async function getChatParticipants(chat_id: number): Promise<IListedAccount[]> {
   });
 
   return participants[0];
-}
-
-async function getMessages(chat_id: number, user_login: string, participants: IListedAccount[], condition: string = ""): Promise<IMessage[]> {
-  const limit = condition ? "LIMIT 1" : "";
-  const messages: [(RowDataPacket & IMessage)[], FieldPacket[]] = await db.query(
-    `
-      SELECT m.id AS id, m.message AS message, m.sender AS sender, m.time AS time, 
-      IF(u.user_login = "${user_login}", 0, 1) AS is_read FROM messages AS m
-      LEFT JOIN unread_messages AS u ON m.id = u.message_id AND m.chat_id = u.chat_id 
-      WHERE m.chat_id = "${chat_id}" AND (m.deleted_from IS NULL OR m.deleted_from != "${user_login}")
-      ${condition ? "ORDER BY time DESC" : "ORDER BY time ASC"}
-      ${limit}
-    `
-  );
-
-  // редактируем is_read и находим, добавляем к сообщению полную информацию об отправителе
-  messages[0] = messages[0].map(el => {
-    el.is_read = Boolean(el.is_read);
-    const senderInfo = participants.find(contact => contact.login === el.sender);
-    // для верной типизации
-    if (senderInfo) {
-      el.sender = senderInfo;
-    }
-    return el;
-  });
-
-  return messages[0];
 }
 
 export async function createChat(user_login: string, participants: string[]): Promise<IChat | null> {
@@ -170,6 +144,10 @@ async function addParticipantsToChat(chat_id: number, participants: string[]): P
   );
 }
 
+export async function deleteGroupParticipant(chat_id: number, user_login: string): Promise<void> {
+  await db.query(`DELETE FROM chat_participants WHERE chat_id = ? AND user_login = ?`, [chat_id, user_login]);
+}
+
 async function getLastChatId(): Promise<number> {
   const result: [(RowDataPacket & { id: number })[], FieldPacket[]] = await db.query(
     `
@@ -184,6 +162,14 @@ async function getLastChatId(): Promise<number> {
   return 0;
 }
 
-export async function clearValueOfDeletedFromColumnInChat(chat_id: number) {
+export async function clearValueOfDeletedFromColumnInChat(chat_id: number): Promise<void> {
   await db.query(`UPDATE chats SET deleted_from = NULL WHERE id = "${chat_id}"`);
+}
+
+export async function markChatAsDeletedByUser(chat_id: number, user_login: string): Promise<void> {
+  await db.query(`UPDATE chats SET deleted_from = ? WHERE id = ?`, [user_login, chat_id]);
+}
+
+export async function deleteChat(id: number): Promise<void> {
+  await db.query(`DELETE FROM chats WHERE id = "${id}"`);
 }

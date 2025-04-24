@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { getInbox } from "../db/slices/chats.js";
 import { getSearchAccounts } from "../db/slices/accounts.js";
 import { IUser } from "../db/types/usersSliceTypes.js";
-import { IChat } from "../db/types/chatsSliceTypes.js";
+import { IChat } from "../db/types/chatsAndMessagesSliceTypes.js";
 import { IListedAccount } from "../db/types/accountsSliceTypes.js";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 

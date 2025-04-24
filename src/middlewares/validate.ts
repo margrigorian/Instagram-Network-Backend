@@ -45,11 +45,28 @@ export function validate(action: string) {
           caption: z.string()
         }),
         postComment: z.object({
-          content: z.string().min(1),
+          content: z
+            .string()
+            .min(1)
+            // в refine включаем свою функцию проверки
+            .refine(value => value.trim().length > 0, {
+              message: "A commenta cannot consist only of spaces"
+            }),
           under_comment: z.number().nullable()
         }),
         postChat: z.object({
           participants: z.array(z.string()).min(1)
+        }),
+        postMessage: z.object({
+          id: z.number(),
+          message: z
+            .string()
+            .min(1)
+            // в refine включаем свою функцию проверки
+            .refine(value => value.trim().length > 0, {
+              message: "A message cannot consist only of spaces"
+            }),
+          time: z.number()
         })
       };
 

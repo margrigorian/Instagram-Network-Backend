@@ -29,10 +29,37 @@ export function queriesParamsValidate(params: string) {
         exploreParams: z.object({
           keyword: z.string().optional(),
           search: z.string().optional()
+        }),
+        chatAndSearchParams: z.object({
+          chatId: z.preprocess(id => Number(id), z.number().positive()),
+          // chatId: z.string().regex(/^\d+$/).transform(Number).pipe(z.number().positive()),
+          inbox: z.union([z.literal("true"), z.literal("false")]).optional(),
+          messageId: z.preprocess(id => Number(id), z.number().positive()).optional(),
+          // messageId: z.string().regex(/^\d+$/).transform(Number).pipe(z.number().positive()).optional(),
+          readMessageId: z.preprocess(id => Number(id), z.number().positive()).optional(),
+          // readMessageId: z.string().regex(/^\d+$/).transform(Number).pipe(z.number().positive()).optional(),
+          participant: z
+            .string()
+            .min(1)
+            // в refine включаем свою функцию проверки
+            .refine(value => value.trim().length > 0, {
+              message: "Login cannot consist of spaces"
+            })
+            .optional(),
+          search: z.string().optional()
         })
       };
 
-      const validatedData = schemas[params].safeParse(req.query);
+      let queryParams; // оставляем any, так как типизация будет проходить через zod
+
+      if (req.params.id) {
+        const { id } = req.params; // для обработки запросов по сообщениям
+        queryParams = { ...req.query, chatId: id };
+      } else {
+        queryParams = req.query;
+      }
+
+      const validatedData = schemas[params].safeParse(queryParams);
 
       if (validatedData.success) {
         next();
