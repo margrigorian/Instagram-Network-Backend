@@ -166,7 +166,7 @@ export async function clearValueOfDeletedFromColumnInChat(chat_id: number): Prom
   await db.query(`UPDATE chats SET deleted_from = NULL WHERE id = "${chat_id}"`);
 }
 
-export async function markChatAsDeletedByUser(chat_id: number, user_login: string): Promise<void> {
+export async function markDialogAsDeletedByUser(chat_id: number, user_login: string): Promise<void> {
   await db.query(`UPDATE chats SET deleted_from = ? WHERE id = ?`, [user_login, chat_id]);
 }
 

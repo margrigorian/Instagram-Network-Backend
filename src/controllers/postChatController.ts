@@ -39,7 +39,7 @@ export async function postChatController(req: Request, res: Response<IResponse>)
           return res.status(400).json(response);
         } else {
           // пользователь ранее удалял диалог, возвращаем существующий
-          // но предде аннулируем deleted_from в чате
+          // но прежде аннулируем deleted_from в чате
           await clearValueOfDeletedFromColumnInChat(dialog.id);
           // нет смысла делать лишний запрос с обновленным полем deleted_from
           dialog.deleted_from = null;

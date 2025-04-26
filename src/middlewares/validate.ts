@@ -58,7 +58,6 @@ export function validate(action: string) {
           participants: z.array(z.string()).min(1)
         }),
         postMessage: z.object({
-          id: z.number(),
           message: z
             .string()
             .min(1)

@@ -64,10 +64,10 @@ socketIO.on("connection", (socket: Socket) => {
     });
   });
 
-  socket.on("sendMessage", async (data: { message: IMessage; participants: IListedAccount[] }) => {
+  socket.on("sendMessage", async (data: { message: IMessage; chat: IChat; participants: IListedAccount[] }) => {
     let sockets: ISocket[] = await getChatParticipantsSockets(data.participants);
     sockets.map(el => {
-      socketIO.to(el.socket_id).emit("message", data.message);
+      socketIO.to(el.socket_id).emit("message", { message: data.message, chat: data.chat });
     });
   });
 
@@ -75,6 +75,20 @@ socketIO.on("connection", (socket: Socket) => {
     let sockets: ISocket[] = await getChatParticipantsSockets(data.participants);
     sockets.map(el => {
       socketIO.to(el.socket_id).emit("deletedMessage", { chatId: data.chatId, messageId: data.messageId });
+    });
+  });
+
+  socket.on("deleteGroupParticipant", async (data: { chatId: number; deletedParticipant: string; participants: IListedAccount[] }) => {
+    let sockets: ISocket[] = await getChatParticipantsSockets(data.participants);
+    sockets.map(el => {
+      socketIO.to(el.socket_id).emit("deletedGroupParticipant", { chatId: data.chatId, deletedParticipant: data.deletedParticipant });
+    });
+  });
+
+  socket.on("deleteGroup", async (data: { chatId: number; participants: IListedAccount[] }) => {
+    let sockets: ISocket[] = await getChatParticipantsSockets(data.participants);
+    sockets.map(el => {
+      socketIO.to(el.socket_id).emit("deletedGroup", { chatId: data.chatId });
     });
   });
 

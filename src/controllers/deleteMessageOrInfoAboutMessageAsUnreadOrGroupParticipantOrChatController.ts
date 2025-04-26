@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
-import { getChatById, deleteGroupParticipant, markChatAsDeletedByUser, deleteChat } from "../db/slices/chats.js";
-import { getMessageById, getInfoAboutUnreadMessageByUser, deleteInfoAboutMessageAsUnreadByUser, deleteMessage } from "../db/slices/messages.js";
+import { getChatById, deleteGroupParticipant, markDialogAsDeletedByUser, deleteChat } from "../db/slices/chats.js";
+import {
+  getMessageById,
+  getInfoAboutUnreadMessageByUser,
+  deleteInfoAboutMessageAsUnreadByUser,
+  markMessagesAsDeletedByUser,
+  deleteMessage
+} from "../db/slices/messages.js";
 import { IUser } from "../db/types/usersSliceTypes.js";
 import getResponseTemplate, { IResponse } from "../lib/responseTemplate.js";
 
@@ -20,14 +26,14 @@ export async function deleteMessageOrInfoAboutMessageAsUnreadOrGroupParticipantO
       // если действия связаны с сообщением, проверяем его наличие
       if (readMessageId || messageId) {
         id = Number(readMessageId) || Number(messageId);
-        const message = await getMessageById(id, Number(chatId));
+        const message = await getMessageById(id);
         // сообщение с таким id присутствует, соответственно оно может быть считано или удалено
         if (message) {
           if (readMessageId) {
             // удаление сообщения из непрочитанных
-            const infoAboutUnreadMessageByUser = await getInfoAboutUnreadMessageByUser(id, Number(chatId), user.login);
+            const infoAboutUnreadMessageByUser = await getInfoAboutUnreadMessageByUser(id, user.login);
             if (infoAboutUnreadMessageByUser) {
-              await deleteInfoAboutMessageAsUnreadByUser(id, Number(chatId), user.login);
+              await deleteInfoAboutMessageAsUnreadByUser(id, user.login);
               response.data = {
                 data: infoAboutUnreadMessageByUser
               };
@@ -36,7 +42,7 @@ export async function deleteMessageOrInfoAboutMessageAsUnreadOrGroupParticipantO
           } else {
             // удаление самого сообщения
             if (message.sender === user.login || (chat.type === "group" && chat.creators === user.login)) {
-              await deleteMessage(id, Number(chatId));
+              await deleteMessage(id);
               // поле deleted_from необходимо для внутренних задач
               delete message.deleted_from;
               response.data = {
@@ -56,15 +62,23 @@ export async function deleteMessageOrInfoAboutMessageAsUnreadOrGroupParticipantO
           if (isGroupPartisipant) {
             // или сам участник хочет выйти из группового чата или же создатель группы удаляет его
             if (user.login === participant || chat.creators === user.login) {
-              if (typeof participant === "string") {
-                await deleteGroupParticipant(chat.id, participant);
-              }
-              response.data = {
-                data: {
-                  chat_id: chat.id,
-                  participant
+              if (chat.participants.length > 1) {
+                // проверка, требуемая типизацией
+                if (typeof participant === "string") {
+                  await deleteGroupParticipant(chat.id, participant);
                 }
-              };
+                response.data = {
+                  data: {
+                    chat_id: chat.id,
+                    participant
+                  }
+                };
+              } else {
+                // чат покидает последний оставшийся участник, группу удаляем полностью
+                await deleteChat(chat.id);
+                delete chat.deleted_from;
+                response.data = { data: chat };
+              }
               return res.status(200).json(response);
             } else {
               // при несоответствии - ошибка доступа
@@ -78,8 +92,9 @@ export async function deleteMessageOrInfoAboutMessageAsUnreadOrGroupParticipantO
         if (chat.type === "dialog") {
           // удаление диалога ранее со стороны собеседников не осуществлялось
           if (chat.deleted_from === null) {
-            await markChatAsDeletedByUser(chat.id, user.login);
+            await markDialogAsDeletedByUser(chat.id, user.login);
             chat.deleted_from = user.login;
+            markMessagesAsDeletedByUser(chat.id, user.login);
             response.data = { data: chat };
             return res.status(200).json(response);
           } else if (chat.deleted_from !== user.login) {
